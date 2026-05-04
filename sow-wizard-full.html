@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create new SOW — Project Clarity</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin:0; background:#f8fafc; color:#0f172a; }
+
+  /* Header */
+  .top { background:#fff; border-bottom:1px solid #e2e8f0; padding:14px 32px; display:flex; align-items:center; gap:12px; }
+  .logo-mark { width:32px; height:32px; background:#2563eb; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+  .logo-text { font-weight:600; color:#0f172a; font-size:15px; }
+
+  /* Page wrapper */
+  .page { max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
+
+  /* ============ STEPPER ============ */
+  .stepper-wrap { background:#fff; border-radius:12px; padding:32px 48px 60px; margin-bottom:32px; box-shadow:0 1px 2px rgba(15,23,42,0.04); border:1px solid #e2e8f0; }
+  .stepper { display:flex; align-items:center; }
+  .step-col { flex:0 0 48px; width:48px; height:48px; position:relative; cursor:pointer; }
+  .step-circle {
+    width:48px; height:48px; border-radius:9999px; display:flex; align-items:center; justify-content:center;
+    font-size:18px; font-weight:600; transition: all 0.2s; background:#fff; border:2px solid #cbd5e1; color:#94a3b8;
+    position:relative; z-index:2;
+  }
+  .step-col.done .step-circle { background:#10b981; border-color:#10b981; color:#fff; }
+  .step-col.active .step-circle { background:#2563eb; border-color:#2563eb; color:#fff; box-shadow:0 0 0 4px rgba(37,99,235,0.15); }
+  .step-label {
+    position:absolute; top:60px; left:50%; transform:translateX(-50%);
+    white-space:nowrap; font-size:14px; font-weight:600; color:#94a3b8; text-align:center;
+  }
+  .step-col.done .step-label { color:#10b981; }
+  .step-col.active .step-label { color:#2563eb; }
+  .step-line { flex:1; height:3px; background:#e2e8f0; transition: background 0.3s; }
+  .step-line.done { background:#2563eb; }
+
+  /* ============ STEP CONTENT ============ */
+  .step-content { display:none; }
+  .step-content.active { display:block; }
+  .step-title { font-size:24px; font-weight:700; color:#0f172a; margin:0 0 6px 0; }
+  .step-sub { font-size:14px; color:#64748b; margin:0 0 24px 0; }
+
+  .panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:24px 28px; box-shadow:0 1px 2px rgba(15,23,42,0.04); }
+
+  /* Form fields */
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .field:last-child { margin-bottom:0; }
+  .field label { font-size:12px; font-weight:500; color:#334155; }
+  .field label .req { color:#dc2626; margin-left:2px; }
+  .field input, .field select, .field textarea {
+    width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px;
+    font-size:13px; color:#0f172a; background:#fff; font-family:inherit; outline:none; transition: all 0.12s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12);
+  }
+  .field textarea { resize:vertical; min-height:90px; }
+  .field .help { font-size:11px; color:#94a3b8; margin-top:2px; }
+
+  /* SOW Type cards */
+  .type-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .type-card {
+    background:#fff; border:1.5px solid #e2e8f0; border-radius:12px;
+    padding:24px; cursor:pointer; transition: all 0.15s; position:relative;
+  }
+  .type-card:hover { border-color:#93c5fd; transform:translateY(-2px); box-shadow:0 12px 24px -8px rgba(15,23,42,0.10); }
+  .type-card.selected { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+  .type-card .check { position:absolute; top:14px; right:14px; width:22px; height:22px; border-radius:9999px; background:#2563eb; color:#fff; display:none; align-items:center; justify-content:center; }
+  .type-card.selected .check { display:flex; }
+  .type-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .type-name { font-size:16px; font-weight:600; color:#0f172a; margin:0 0 4px 0; }
+  .type-desc { font-size:13px; color:#64748b; line-height:1.5; margin:0; }
+
+  /* Reuse box (Speed it up) */
+  .reuse-box {
+    background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;
+    padding:14px 16px; display:flex; align-items:center; gap:12px; position:relative;
+  }
+  .reuse-box .icon { width:32px; height:32px; border-radius:8px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; color:#475569; flex-shrink:0; }
+  .reuse-box .label { font-size:13px; font-weight:500; color:#334155; flex:1; }
+  .reuse-box input { flex:0 0 240px; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; outline:none; background:#fff; }
+  .reuse-results {
+    position:absolute; top:calc(100% + 4px); right:0; width:280px;
+    background:#fff; border:1px solid #e2e8f0; border-radius:8px;
+    box-shadow:0 8px 24px -6px rgba(15,23,42,0.12); display:none; max-height:240px; overflow-y:auto; z-index:10;
+  }
+  .reuse-results.show { display:block; }
+  .reuse-item { padding:9px 12px; font-size:12px; cursor:pointer; border-bottom:1px solid #f1f5f9; }
+  .reuse-item:hover { background:#f8fafc; }
+  .reuse-item:last-child { border-bottom:none; }
+
+  /* Resource cards (per-period allocation) */
+  .resource-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:14px; box-shadow:0 1px 2px rgba(15,23,42,0.04); overflow:hidden; }
+  .resource-header {
+    display:grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 40px;
+    gap:12px; padding:14px 18px; align-items:end;
+    background:#f8fafc; border-bottom:1px solid #e2e8f0;
+  }
+  .resource-header label { font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:4px; }
+  .resource-header select, .resource-header input {
+    width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px;
+    font-size:13px; color:#0f172a; background:#fff; font-family:inherit; outline:none;
+  }
+  .resource-header select:focus, .resource-header input:focus { border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,0.1); }
+
+  /* Per-resource financial summary strip */
+  .resource-financials {
+    display:grid; grid-template-columns: repeat(5, 1fr); gap:16px;
+    padding:12px 18px; background:#f1f5f9; border-bottom:1px solid #e2e8f0;
+  }
+  .resource-financials .item .lbl { font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px; }
+  .resource-financials .item .val { font-size:14px; font-weight:700; color:#0f172a; }
+  .resource-financials .item .val.pos { color:#10b981; }
+  .resource-financials .item .val.neg { color:#dc2626; }
+  .periods-list { padding:12px 18px 14px; }
+  .periods-list .periods-header {
+    display:grid; grid-template-columns: 1fr 1fr 1fr 40px; gap:12px;
+    font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;
+    padding:4px 0 8px; border-bottom:1px solid #f1f5f9;
+  }
+  .period-row {
+    display:grid; grid-template-columns: 1fr 1fr 1fr 40px; gap:12px;
+    align-items:center; padding:8px 0; border-bottom:1px solid #f1f5f9;
+  }
+  .period-row:last-child { border-bottom:none; }
+  .period-row input {
+    width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px;
+    font-size:13px; color:#0f172a; background:#fff; font-family:inherit; outline:none;
+  }
+  .period-row input:focus { border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,0.1); }
+  .add-period-btn {
+    margin-top:10px; display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+    border:1.5px dashed #cbd5e1; border-radius:6px; background:transparent;
+    color:#2563eb; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .add-period-btn:hover { border-color:#2563eb; background:#eff6ff; }
+  .delete-btn { background:none; border:none; cursor:pointer; padding:6px; color:#94a3b8; border-radius:4px; transition: all 0.12s; }
+  .delete-btn:hover { color:#dc2626; background:#fef2f2; }
+
+  .add-resource {
+    margin-top:16px; display:inline-flex; align-items:center; gap:8px; padding:10px 16px;
+    border:1.5px dashed #cbd5e1; border-radius:8px; background:transparent;
+    color:#2563eb; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+    transition: all 0.12s;
+  }
+  .add-resource:hover { border-color:#2563eb; background:#eff6ff; }
+
+  .totals {
+    margin-top:20px; padding:16px 20px; background:#f8fafc; border:1px solid #e2e8f0;
+    border-radius:8px; display:grid; grid-template-columns:repeat(6,1fr); gap:20px;
+  }
+  .totals .item .lbl { font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; font-weight:600; margin-bottom:4px; }
+  .totals .item .val { font-size:18px; font-weight:700; color:#0f172a; }
+  .totals .item .val.pos { color:#10b981; }
+  .totals .item .val.neg { color:#dc2626; }
+
+  /* SOW Document layout */
+  .sow-doc { font-family: 'Inter', sans-serif; color:#0f172a; line-height:1.6; padding:32px 40px; background:#fff; }
+  .sow-header { display:flex; justify-content:flex-end; margin-bottom:24px; }
+  .sow-logo { font-size:18px; font-weight:700; color:#2563eb; letter-spacing:-0.02em; }
+  .sow-title { font-size:22px; font-weight:700; text-align:center; margin:0 0 24px 0; color:#0f172a; }
+  .sow-preamble { font-size:13px; color:#0f172a; margin:0 0 14px 0; line-height:1.55; }
+  .sow-table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  .sow-table th, .sow-table td { border:1px solid #94a3b8; padding:10px 12px; vertical-align:top; }
+  .sow-table thead th { background:#f1f5f9; text-align:center; font-weight:700; font-size:14px; }
+  .sow-table .sow-label { width:200px; font-weight:700; background:#f8fafc; }
+  .sow-table p { margin:0 0 10px 0; }
+  .sow-table p:last-child { margin-bottom:0; }
+  .sow-table ul, .sow-table ol { margin:6px 0 6px 20px; padding:0; }
+  .sow-table li { margin-bottom:4px; }
+  .sow-resource-table { width:100%; border-collapse:collapse; margin:8px 0 12px 0; font-size:12px; }
+  .sow-resource-table th, .sow-resource-table td { border:1px solid #94a3b8; padding:6px 10px; }
+  .sow-resource-table th { background:#f1f5f9; font-weight:600; text-align:left; }
+  .sow-signature td { padding:16px 20px; }
+  .sow-signature p { margin:0 0 4px 0; }
+  .sow-doc .editable { background:#fef9c3; padding:1px 4px; border-radius:3px; cursor:text; }
+  .sow-doc .placeholder { color:#94a3b8; font-style:italic; }
+
+  /* Print styles */
+  @media print {
+    body * { visibility:hidden; }
+    .sow-doc, .sow-doc * { visibility:visible; }
+    .sow-doc { position:absolute; left:0; top:0; width:100%; }
+  }
+
+  /* Buttons */
+  .actions { display:flex; justify-content:space-between; align-items:center; margin-top:24px; }
+  .btn { padding:10px 18px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid transparent; font-family:inherit; display:inline-flex; align-items:center; gap:8px; }
+  .btn-secondary { background:#fff; color:#475569; border-color:#cbd5e1; }
+  .btn-secondary:hover { background:#f8fafc; }
+  .btn-primary { background:#2563eb; color:#fff; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-success { background:#10b981; color:#fff; font-weight:600; }
+  .btn-success:hover { background:#059669; }
+
+  /* Toast */
+  .toast {
+    position:fixed; top:20px; right:20px; background:#0f172a; color:#fff;
+    padding:12px 16px; border-radius:8px; font-size:13px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15); display:flex; align-items:center; gap:10px;
+    opacity:0; transform:translateY(-8px); transition: all 0.2s; pointer-events:none; z-index:100;
+  }
+  .toast.show { opacity:1; transform:translateY(0); }
+  .toast.success { background:#10b981; }
+  .toast.error { background:#dc2626; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo-mark">C</div>
+  <div class="logo-text">Project Clarity</div>
+  <div style="margin-left:auto;font-size:12px;color:#64748b;">Avnish Ozarkar</div>
+</header>
+
+<div class="page">
+
+  <!-- ============ STEPPER ============ -->
+  <div class="stepper-wrap">
+    <div class="stepper">
+      <div class="step-col" data-step="1" onclick="goToStep(1)">
+        <div class="step-circle">
+          <span class="num">1</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">SOW Type</div>
+      </div>
+
+      <div class="step-line" id="line1"></div>
+
+      <div class="step-col" data-step="2" onclick="goToStep(2)">
+        <div class="step-circle">
+          <span class="num">2</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">Customer &amp; Project</div>
+      </div>
+
+      <div class="step-line" id="line2"></div>
+
+      <div class="step-col" data-step="3" onclick="goToStep(3)">
+        <div class="step-circle">
+          <span class="num">3</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">Resource Planning</div>
+      </div>
+
+      <div class="step-line" id="line3"></div>
+
+      <div class="step-col" data-step="4" onclick="goToStep(4)">
+        <div class="step-circle">
+          <span class="num">4</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">Review &amp; Submit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 1: SOW TYPE (matches 2-step home) ============ -->
+  <div class="step-content" data-step="1">
+    <h1 class="step-title">SOW Type</h1>
+    <p class="step-sub">Choose the engagement model for this contract.</p>
+
+    <div class="type-grid">
+      <div class="type-card" data-template="lean" onclick="selectTemplate('lean')">
+        <div class="check"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+        <div class="type-icon" style="background:#ecfdf5;color:#059669;">
+          <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <h3 class="type-name">Lean T&amp;M</h3>
+        <p class="type-desc">Lightweight time &amp; material. Hourly billing, minimal scope.</p>
+      </div>
+
+      <div class="type-card" data-template="elaborate" onclick="selectTemplate('elaborate')">
+        <div class="check"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+        <div class="type-icon" style="background:#eff6ff;color:#2563eb;">
+          <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <h3 class="type-name">Elaborate T&amp;M</h3>
+        <p class="type-desc">Detailed T&amp;M with milestones, deliverables, and structured governance.</p>
+      </div>
+
+      <div class="type-card" data-template="fixed" onclick="selectTemplate('fixed')">
+        <div class="check"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+        <div class="type-icon" style="background:#fef3c7;color:#b45309;">
+          <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 12v-2m0 0c-2.21 0-4-.895-4-2H7m9-4c0-1.105-1.79-2-4-2H7"/></svg>
+        </div>
+        <h3 class="type-name">Fixed Fee</h3>
+        <p class="type-desc">Outcome-based engagements with defined scope, fixed price, milestone payments.</p>
+      </div>
+
+      <div class="type-card" data-template="hybrid" onclick="selectTemplate('hybrid')">
+        <div class="check"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+        <div class="type-icon" style="background:#f3e8ff;color:#7e22ce;">
+          <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10"/></svg>
+        </div>
+        <h3 class="type-name">Hybrid</h3>
+        <p class="type-desc">Combine multiple billing models in one SOW. Fixed fee for defined deliverables plus T&amp;M for ongoing work.</p>
+      </div>
+    </div>
+
+    <div class="reuse-box">
+      <div class="icon">
+        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+      </div>
+      <span class="label">Speed it up — start from a previous SOW</span>
+      <input id="priorSearch" type="text" placeholder="Search SOW # or customer…" oninput="filterPrior(this.value)" onfocus="filterPrior(this.value)" onclick="event.stopPropagation();"/>
+      <div id="priorResults" class="reuse-results"></div>
+    </div>
+
+    <div class="actions">
+      <div></div>
+      <button class="btn btn-primary" onclick="nextStep()">Continue
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ STEP 2: CUSTOMER & PROJECT ============ -->
+  <div class="step-content" data-step="2">
+    <h1 class="step-title">Customer &amp; Project</h1>
+    <p class="step-sub">Project details and customer information.</p>
+
+    <div class="panel">
+      <div class="row">
+        <div class="field">
+          <label>Customer<span class="req">*</span></label>
+          <select id="customer" onchange="onCustomerChange()">
+            <option value="">Select a customer…</option>
+            <option value="surveymonkey">SurveyMonkey</option>
+            <option value="workato">Workato</option>
+            <option value="acme">Acme Corp</option>
+            <option value="globex">Globex</option>
+            <option value="initech">Initech</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Opportunity<span class="req">*</span></label>
+          <select id="opportunity" disabled>
+            <option value="">Select customer first…</option>
+          </select>
+          <div class="help">Pulled from JobDiva pipeline.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Project name<span class="req">*</span></label>
+        <input type="text" id="projectName" placeholder="e.g. Data platform Q2 build-out"/>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Start date<span class="req">*</span></label>
+          <input type="date" id="startDate" onchange="onStartDateChange()"/>
+          <div class="help">Must be today or later.</div>
+        </div>
+        <div class="field">
+          <label>End date<span class="req">*</span></label>
+          <input type="date" id="endDate"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Project description<span class="req">*</span></label>
+        <textarea id="description" placeholder="Describe the engagement, scope, and key deliverables…" oninput="document.getElementById('descCount').textContent = this.value.length; updatePreview();"></textarea>
+        <div class="help"><span id="descCount">0</span> / 500 characters</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="prevStep()">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <button class="btn btn-primary" onclick="nextStep()">Continue
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ STEP 3: RESOURCE PLANNING ============ -->
+  <div class="step-content" data-step="3">
+    <h1 class="step-title">Resource Planning</h1>
+    <p class="step-sub">Define roles, allocations, and billing rates for your project team.</p>
+
+    <div id="resourceBody"></div>
+
+    <button class="add-resource" onclick="addResource()">
+      <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+      Add Resource
+    </button>
+
+    <div class="totals">
+      <div class="item"><div class="lbl">Total Hours</div><div class="val" id="totHours">0</div></div>
+      <div class="item"><div class="lbl">Total Fees</div><div class="val" id="totFees">$0</div></div>
+      <div class="item"><div class="lbl">Total Cost</div><div class="val" id="totCost">$0</div></div>
+      <div class="item"><div class="lbl">Margin $</div><div class="val" id="totMargin">$0</div></div>
+      <div class="item"><div class="lbl">Margin %</div><div class="val" id="totMarginPct">0%</div></div>
+      <div class="item"><div class="lbl">Resources</div><div class="val" id="totResources">0</div></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="prevStep()">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <button class="btn btn-primary" onclick="nextStep()">Continue
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ STEP 4: REVIEW & SUBMIT ============ -->
+  <div class="step-content" data-step="4">
+    <h1 class="step-title">Review &amp; Submit</h1>
+    <p class="step-sub">This is the actual SOW that will be sent to the customer for signature. Highlighted fields are auto-filled from your inputs. Click any of them to edit.</p>
+
+    <div class="panel" id="reviewPanel" style="padding:0;"></div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="prevStep()">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="window.print()">Download / Print
+          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        </button>
+        <button class="btn btn-success" onclick="submitSow()">Submit SOW
+          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // ============ DATA ============
+  const opportunitiesByCustomer = {
+    surveymonkey: [
+      { id: 'OPP-2041', name: 'Survey platform — Q2 expansion' },
+      { id: 'OPP-2058', name: 'Data warehouse migration' },
+    ],
+    workato:      [{ id: 'OPP-2065', name: 'Connector library refresh' }],
+    acme:         [
+      { id: 'OPP-2070', name: 'QA augmentation 2026' },
+      { id: 'OPP-2073', name: 'Mobile rebuild' },
+    ],
+    globex:       [{ id: 'OPP-2080', name: 'Data lake setup' }],
+    initech:      [{ id: 'OPP-2088', name: 'Migration phase 2' }],
+  };
+
+  const priorSows = [
+    { id: 'SOW-1031', customer: 'SurveyMonkey', value: '$340k', type: 'elaborate' },
+    { id: 'SOW-1029', customer: 'Workato',      value: '$210k', type: 'lean' },
+    { id: 'SOW-1024', customer: 'Acme Corp',    value: '$580k', type: 'fixed' },
+    { id: 'SOW-1018', customer: 'Globex',       value: '$185k', type: 'lean' },
+    { id: 'SOW-1011', customer: 'Initech',      value: '$420k', type: 'elaborate' },
+  ];
+
+  const customerLabels = { surveymonkey:'SurveyMonkey', workato:'Workato', acme:'Acme Corp', globex:'Globex', initech:'Initech' };
+  const typeLabels = { lean:'Lean T&M', elaborate:'Elaborate T&M', fixed:'Fixed Fee', hybrid:'Hybrid' };
+  const ROLES = ['Data Architect','Data Engineer','Project Manager','Software Engineer','QA Engineer','Business Analyst','Solution Architect'];
+
+  // ============ STATE ============
+  let currentStep = 1;
+  let selectedTemplate = null;
+  let resources = [
+    { role: 'Data Architect', location: 'Onshore',  rate: 150, flcRate: 90, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+    { role: 'Data Engineer',  location: 'Offshore', rate: 75,  flcRate: 35, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+  ];
+
+  // ============ STEPPER ============
+  function renderStepper() {
+    document.querySelectorAll('.step-col').forEach(el => {
+      const n = parseInt(el.dataset.step);
+      el.classList.toggle('done', n < currentStep);
+      el.classList.toggle('active', n === currentStep);
+      const num = el.querySelector('.num');
+      const check = el.querySelector('.check');
+      if (n < currentStep) { num.style.display = 'none'; check.style.display = 'block'; }
+      else { num.style.display = 'inline'; check.style.display = 'none'; }
+    });
+    for (let i = 1; i <= 3; i++) {
+      const line = document.getElementById('line' + i);
+      if (line) line.classList.toggle('done', i < currentStep);
+    }
+    document.querySelectorAll('.step-content').forEach(el => {
+      el.classList.toggle('active', parseInt(el.dataset.step) === currentStep);
+    });
+  }
+
+  function nextStep() {
+    if (currentStep === 1 && !selectedTemplate) { toast('Pick an engagement type to continue.', 'error'); return; }
+    if (currentStep === 2 && !validateCustomerProject()) return;
+    if (currentStep === 3 && resources.length === 0) { toast('Add at least one resource.', 'error'); return; }
+    if (currentStep < 4) { currentStep++; renderStepper(); if (currentStep === 4) renderReview(); window.scrollTo({top:0, behavior:'smooth'}); }
+  }
+  function prevStep() {
+    if (currentStep > 1) { currentStep--; renderStepper(); window.scrollTo({top:0, behavior:'smooth'}); }
+  }
+  function goToStep(n) {
+    if (n <= currentStep) { currentStep = n; renderStepper(); window.scrollTo({top:0, behavior:'smooth'}); }
+    else if (n === currentStep + 1) nextStep();
+    else toast('Complete the current step first.', 'error');
+  }
+
+  // ============ STEP 1: TEMPLATE ============
+  function selectTemplate(t) {
+    const previous = selectedTemplate;
+    selectedTemplate = t;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`[data-template="${t}"]`).classList.add('selected');
+    if (previous !== t) resetCustomerProjectForm();
+  }
+
+  function resetCustomerProjectForm() {
+    document.getElementById('customer').value = '';
+    const opp = document.getElementById('opportunity');
+    opp.disabled = true;
+    opp.innerHTML = '<option value="">Select customer first…</option>';
+    document.getElementById('projectName').value = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('descCount').textContent = '0';
+  }
+
+  function filterPrior(q) {
+    const results = document.getElementById('priorResults');
+    const query = (q || '').toLowerCase().trim();
+    const matches = priorSows.filter(s => s.id.toLowerCase().includes(query) || s.customer.toLowerCase().includes(query));
+    if (!matches.length) {
+      results.innerHTML = '<div class="reuse-item" style="color:#94a3b8;cursor:default;">No matches</div>';
+    } else {
+      results.innerHTML = matches.map(s => `
+        <div class="reuse-item" onclick="pickPrior('${s.id}','${s.customer}','${s.type}','${s.value}'); event.stopPropagation();">
+          <div style="font-weight:600;color:#0f172a;">${s.id} · ${s.customer}</div>
+          <div style="font-size:11px;color:#64748b;">${typeLabels[s.type]} · ${s.value}</div>
+        </div>`).join('');
+    }
+    results.classList.add('show');
+  }
+  function pickPrior(id, customer, type, value) {
+    document.getElementById('priorSearch').value = `${id} · ${customer}`;
+    document.getElementById('priorResults').classList.remove('show');
+    selectTemplate(type);
+    const slug = Object.keys(customerLabels).find(k => customerLabels[k] === customer);
+    if (slug) {
+      document.getElementById('customer').value = slug;
+      onCustomerChange();
+    }
+    document.getElementById('projectName').value = `${customer} — copy of ${id}`;
+    document.getElementById('description').value = `Copied from ${id} (${typeLabels[type]}, ${value}). Edit as needed.`;
+    document.getElementById('descCount').textContent = document.getElementById('description').value.length;
+    toast(`Copied details from ${id}.`, 'success');
+  }
+  document.addEventListener('click', () => {
+    document.getElementById('priorResults').classList.remove('show');
+  });
+
+  // ============ STEP 2: CUSTOMER ============
+  function onCustomerChange() {
+    const cust = document.getElementById('customer').value;
+    const opp = document.getElementById('opportunity');
+    opp.innerHTML = '<option value="">Select an opportunity…</option>';
+    if (!cust) { opp.disabled = true; opp.innerHTML = '<option value="">Select customer first…</option>'; return; }
+    opp.disabled = false;
+    (opportunitiesByCustomer[cust] || []).forEach(o => {
+      const el = document.createElement('option');
+      el.value = o.id; el.textContent = `${o.id} — ${o.name}`;
+      opp.appendChild(el);
+    });
+  }
+
+  function validateCustomerProject() {
+    const fields = ['customer','opportunity','projectName','startDate','endDate','description'];
+    for (const f of fields) {
+      const v = document.getElementById(f).value.trim();
+      if (!v) { toast('Please fill all required fields.', 'error'); document.getElementById(f).focus(); return false; }
+    }
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    if (end < start) { toast('End date must be after start date.', 'error'); return false; }
+    return true;
+  }
+
+  // Date constraints
+  function todayISO() {
+    const d = new Date();
+    const tz = d.getTimezoneOffset() * 60000;
+    return new Date(d - tz).toISOString().slice(0, 10);
+  }
+  function onStartDateChange() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate');
+    if (start) {
+      end.min = start;
+      if (end.value && end.value < start) {
+        end.value = '';
+        toast('End date cleared — must be on or after start date.', 'error');
+      }
+    }
+  }
+
+  // ============ STEP 3: RESOURCES (per-period allocation) ============
+  function getResourceHours(r) {
+    return (r.periods || []).reduce((s, p) => s + (+p.hours || 0), 0);
+  }
+
+  function renderResources() {
+    const body = document.getElementById('resourceBody');
+    body.innerHTML = resources.map((r, i) => {
+      const total = getResourceHours(r);
+      const fees = total * (+r.rate || 0);
+      const cost = total * (+r.flcRate || 0);
+      const margin = fees - cost;
+      const marginPct = fees > 0 ? (margin / fees) * 100 : 0;
+      const marginClass = margin >= 0 ? 'pos' : 'neg';
+      return `
+      <div class="resource-card">
+        <div class="resource-header">
+          <div>
+            <label>Role</label>
+            <select onchange="updateResource(${i}, 'role', this.value)">
+              ${ROLES.map(role => `<option ${role===r.role?'selected':''}>${role}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Location</label>
+            <select onchange="updateResource(${i}, 'location', this.value)">
+              <option ${r.location==='Onshore'?'selected':''}>Onshore</option>
+              <option ${r.location==='Offshore'?'selected':''}>Offshore</option>
+            </select>
+          </div>
+          <div>
+            <label>Bill Rate ($/hr)</label>
+            <input type="number" min="0" value="${r.rate}" onchange="updateResource(${i}, 'rate', +this.value)"/>
+          </div>
+          <div>
+            <label>FLC Rate ($/hr)</label>
+            <input type="number" min="0" value="${r.flcRate || 0}" onchange="updateResource(${i}, 'flcRate', +this.value)"/>
+          </div>
+          <button class="delete-btn" onclick="removeResource(${i})" title="Delete resource">
+            <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+          </button>
+        </div>
+
+        <div class="resource-financials">
+          <div class="item"><div class="lbl">Total Hours</div><div class="val">${total.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Total Fees</div><div class="val">$${fees.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Total Cost</div><div class="val">$${cost.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Margin $</div><div class="val ${marginClass}">$${margin.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Margin %</div><div class="val ${marginClass}">${marginPct.toFixed(1)}%</div></div>
+        </div>
+
+        <div class="periods-list">
+          <div class="periods-header">
+            <div>Start Date</div>
+            <div>End Date</div>
+            <div>Hours</div>
+            <div></div>
+          </div>
+          ${(r.periods || []).map((p, pi) => `
+            <div class="period-row">
+              <input type="date" min="${todayISO()}" value="${p.startDate || ''}" onchange="updatePeriod(${i}, ${pi}, 'startDate', this.value)"/>
+              <input type="date" min="${p.startDate || todayISO()}" value="${p.endDate || ''}" onchange="updatePeriod(${i}, ${pi}, 'endDate', this.value)"/>
+              <input type="number" min="0" placeholder="0" value="${p.hours || ''}" onchange="updatePeriod(${i}, ${pi}, 'hours', +this.value)"/>
+              <button class="delete-btn" onclick="removePeriod(${i}, ${pi})" title="Delete period">
+                <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          `).join('')}
+          <button class="add-period-btn" onclick="addPeriod(${i})">
+            <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Add period
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+    updateTotals();
+  }
+
+  function addResource() {
+    resources.push({ role: 'Software Engineer', location: 'Onshore', rate: 100, flcRate: 60, periods: [{ startDate: '', endDate: '', hours: 0 }] });
+    renderResources();
+  }
+  function removeResource(i) { resources.splice(i, 1); renderResources(); }
+
+  function updateResource(i, field, val) {
+    if (field === 'rate' && val < 0) { val = 0; renderResources(); return; }
+    resources[i][field] = val;
+    updateTotals();
+    renderResources();
+  }
+
+  function addPeriod(i) {
+    resources[i].periods.push({ startDate: '', endDate: '', hours: 0 });
+    renderResources();
+  }
+  function removePeriod(i, pi) {
+    resources[i].periods.splice(pi, 1);
+    if (resources[i].periods.length === 0) {
+      resources[i].periods.push({ startDate: '', endDate: '', hours: 0 });
+    }
+    renderResources();
+  }
+
+  function updatePeriod(i, pi, field, val) {
+    const p = resources[i].periods[pi];
+    if (field === 'hours' && val < 0) { val = 0; renderResources(); return; }
+    if (field === 'startDate') {
+      p.startDate = val;
+      if (p.endDate && p.endDate < val) {
+        p.endDate = '';
+        toast('End date cleared — must be on or after start date.', 'error');
+      }
+      renderResources();
+      return;
+    }
+    if (field === 'endDate') {
+      if (p.startDate && val < p.startDate) {
+        toast('End date must be on or after start date.', 'error');
+        renderResources();
+        return;
+      }
+      p.endDate = val;
+      renderResources();
+      return;
+    }
+    p[field] = val;
+    updateTotals();
+    renderResources();
+  }
+
+  function updateTotals() {
+    const totHours = resources.reduce((s, r) => s + getResourceHours(r), 0);
+    const totFees = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.rate || 0)), 0);
+    const totCost = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.flcRate || 0)), 0);
+    const totMargin = totFees - totCost;
+    const totMarginPct = totFees > 0 ? (totMargin / totFees) * 100 : 0;
+    const cls = totMargin >= 0 ? 'pos' : 'neg';
+    document.getElementById('totHours').textContent = totHours.toLocaleString();
+    document.getElementById('totFees').textContent = '$' + totFees.toLocaleString();
+    document.getElementById('totCost').textContent = '$' + totCost.toLocaleString();
+    const marginEl = document.getElementById('totMargin');
+    const marginPctEl = document.getElementById('totMarginPct');
+    marginEl.textContent = '$' + totMargin.toLocaleString();
+    marginEl.className = 'val ' + cls;
+    marginPctEl.textContent = totMarginPct.toFixed(1) + '%';
+    marginPctEl.className = 'val ' + cls;
+    document.getElementById('totResources').textContent = resources.length;
+  }
+
+  // ============ STEP 4: REVIEW (full SOW document) ============
+  const customerAddresses = {
+    surveymonkey: 'One Curiosity Way, San Mateo, CA 94403',
+    workato:      '595 Pacific Avenue, 4th Floor, San Francisco, CA 94133',
+    acme:         '350 5th Avenue, New York, NY 10118',
+    globex:       '450 California Street, San Francisco, CA 94104',
+    initech:      '200 W. Lake Street, Suite 100, Chicago, IL 60606',
+  };
+  const customerAbbrevs = {
+    surveymonkey: 'SurveyMonkey',
+    workato:      'Workato',
+    acme:         'Acme',
+    globex:       'Globex',
+    initech:      'Initech',
+  };
+  const customerMsaDates = {
+    surveymonkey: '02/02/2026',
+    workato:      '01/15/2026',
+    acme:         '12/01/2025',
+    globex:       '11/15/2025',
+    initech:      '10/01/2025',
+  };
+  const customerContacts = {
+    surveymonkey: 'contact@surveymonkey.com',
+    workato:      'contact@workato.com',
+    acme:         'contact@acme.com',
+    globex:       'contact@globex.com',
+    initech:      'contact@initech.com',
+  };
+
+  const sowTypeDetails = {
+    lean: {
+      areaOfExpertise: 'Application Development and Staff Augmentation',
+      deliverables: [
+        'Provide skilled resources to support customer initiatives on an hourly basis',
+        'Weekly status updates and capacity reporting',
+        'Knowledge transfer documentation upon completion',
+      ],
+      assumptions: [
+        'Customer to provide access to systems, tools, and key stakeholders',
+        'Resources will follow customer\'s standard development practices and tooling',
+        'Engagement may be extended or terminated with reasonable written notice',
+      ],
+    },
+    elaborate: {
+      areaOfExpertise: 'Integration and Automation',
+      deliverables: [
+        'Detailed project plan with milestones and deliverables',
+        'Phased technical implementation per agreed scope',
+        'Monthly status reports including risk and issue tracking',
+        'Knowledge transfer documentation and post-engagement support',
+        'Final acceptance review at end of engagement',
+      ],
+      assumptions: [
+        'Customer to provide timely access to systems, tools, and subject matter experts',
+        'Customer-side dependencies must be available per the agreed project plan',
+        'Scope changes will follow the Change Request process outlined in this SOW',
+        'Engagement is governed by the terms of the executed Master Service Agreement',
+      ],
+    },
+    fixed: {
+      areaOfExpertise: 'Project Delivery',
+      deliverables: [
+        'Defined scope deliverables per attached statement of work',
+        'Milestone-based payment schedule with clear acceptance criteria',
+        'Acceptance review and sign-off for each milestone deliverable',
+        'Final knowledge transfer and project documentation',
+      ],
+      assumptions: [
+        'Scope is fixed and frozen at SOW signing',
+        'Any scope changes require a signed Change Request and may impact pricing',
+        'Customer to provide test environment, sample data, and timely stakeholder access',
+        'Delivery timelines are subject to customer-side dependencies being met on schedule',
+      ],
+    },
+    hybrid: {
+      areaOfExpertise: 'Integration and Project Delivery',
+      deliverables: [
+        'Fixed-fee deliverables for defined scope items',
+        'Time-and-material support for ongoing or undefined work',
+        'Combined milestone plan with both billing models clearly identified',
+        'Monthly status reporting covering both fixed and T&M components',
+      ],
+      assumptions: [
+        'Fixed-fee and T&M components are clearly delineated in the project plan',
+        'Scope changes for fixed components follow the Change Request process',
+        'T&M work may be extended or reduced based on demand and capacity',
+        'Customer to provide ongoing access to required environments and stakeholders',
+      ],
+    },
+  };
+
+  const providerPOC = {
+    name: 'Andy Bhatnagar',
+    email: 'andy.bhatnagar@dynpro.com',
+    phone: '281-840-9255',
+  };
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${m}/${d}/${y}`;
+  }
+  function calculateWeeks(startISO, endISO) {
+    if (!startISO || !endISO) return 0;
+    const ms = new Date(endISO) - new Date(startISO);
+    return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24 * 7)));
+  }
+  function ph(val, placeholder) {
+    return val ? `<span class="editable">${val}</span>` : `<span class="placeholder">[${placeholder}]</span>`;
+  }
+
+  function renderReview() {
+    const custKey = document.getElementById('customer').value;
+    const cust = customerLabels[custKey] || '';
+    const custAbbrev = customerAbbrevs[custKey] || cust || 'Customer';
+    const custAddress = customerAddresses[custKey] || '';
+    const oppSel = document.getElementById('opportunity');
+    const oppText = oppSel.options[oppSel.selectedIndex]?.text || '';
+    const opp = (oppText && !oppText.startsWith('Select')) ? oppText : '';
+    const name = document.getElementById('projectName').value;
+    const startRaw = document.getElementById('startDate').value;
+    const endRaw = document.getElementById('endDate').value;
+    const start = formatDate(startRaw);
+    const end = formatDate(endRaw);
+    const duration = calculateWeeks(startRaw, endRaw);
+    const desc = document.getElementById('description').value;
+    const effective = formatDate(todayISO());
+    const totRevenue = resources.reduce((s, r) => s + (getResourceHours(r) * r.rate), 0);
+    const msaDate = customerMsaDates[custKey] || '01/01/2026';
+    const customerEmail = customerContacts[custKey] || 'contact@customer.com';
+    const sowKey = selectedTemplate || 'elaborate';
+    const details = sowTypeDetails[sowKey];
+
+    document.getElementById('reviewPanel').innerHTML = `
+      <div class="sow-doc">
+        <div class="sow-header"><div class="sow-logo">DynPro</div></div>
+
+        <h1 class="sow-title">Statement of Work – ${ph(name, 'Project Name')}</h1>
+
+        <p class="sow-preamble">
+          THIS STATEMENT OF WORK ("SOW") is entered into as of ${ph(effective, 'Effective Date')} (the "Effective Date") by and between <strong>DynPro, Inc.</strong>, with its principal place of business at 8045 Arco Corporate Drive, Suite #370, Raleigh, NC 27617 ("Provider") and <strong>${ph(cust, 'Customer Name')}</strong>, ("${ph(custAbbrev, 'Abbrev')}") with its principal place of business at ${ph(custAddress, 'Customer Address')}.
+        </p>
+
+        <p class="sow-preamble">
+          This SOW is subject to and governed by the Master Service Agreement ("MSA") entered into by such parties having an Effective Date of <span class="editable">${msaDate}</span>.
+        </p>
+
+        <table class="sow-table">
+          <thead><tr><th colspan="2">Summary Information</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="sow-label">STATEMENT OF WORK</td>
+              <td>${ph(desc, 'Project description')}</td>
+            </tr>
+            <tr>
+              <td class="sow-label">SCOPE</td>
+              <td>
+                <p><strong>Technical Scope and Deliverables:</strong></p>
+                <ul>
+                  ${details.deliverables.map(d => `<li><span class="editable">${d}</span></li>`).join('')}
+                </ul>
+                <p><strong>Assumptions:</strong> Following assumptions apply to the project scope:</p>
+                <ul>
+                  ${details.assumptions.map(a => `<li><span class="editable">${a}</span></li>`).join('')}
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">NOT TO EXCEED CONTRACT VALUE</td>
+              <td>
+                <p>DynPro will provide following skilled resources, details below:</p>
+                <table class="sow-resource-table">
+                  <thead>
+                    <tr><th>Role</th><th>Location</th><th>Estimated Hours (hr.)</th></tr>
+                  </thead>
+                  <tbody>
+                    ${resources.map(r => `<tr>
+                      <td>${r.role}</td>
+                      <td>${r.location}</td>
+                      <td>${getResourceHours(r).toLocaleString()}</td>
+                    </tr>`).join('')}
+                  </tbody>
+                </table>
+                <p><strong>Total Contract value: <span class="editable">USD $${totRevenue.toLocaleString()}.00</span></strong></p>
+                <p><strong>Note:</strong></p>
+                <ol>
+                  <li>DynPro shall issue invoices based on the actual hours worked. Invoices will be submitted at the beginning of each calendar month for services rendered during the preceding month.</li>
+                  <li>Travel and living expenses are not anticipated at this stage. If such expenses become necessary, prior written approval from ${custAbbrev || 'Customer'} will be required, and any approved expenses will be invoiced on a pass-through basis.</li>
+                </ol>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">SOW PERIOD</td>
+              <td>
+                <ul>
+                  <li>Start Date: ${ph(start, 'Start Date')}</li>
+                  <li>End Date: ${ph(end, 'End Date')}</li>
+                  <li>Duration: ${duration ? `<span class="editable">${duration} weeks</span>` : '<span class="placeholder">[Duration]</span>'}</li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">PRIMARY WORK SITE</td>
+              <td>Remote</td>
+            </tr>
+            <tr>
+              <td class="sow-label">REPORTING</td>
+              <td>
+                A Monthly Status Report is to be delivered in MS Office Word/Excel. The report is to include Status, Issues, and Risk Communication to ensure ${custAbbrev || 'Customer'} is fully engaged with the latest developments and potential problems.
+                <br><br>
+                Report to be delivered via email to <span class="editable">${customerEmail}</span>.
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">ACCEPTANCE CRITERIA</td>
+              <td>Time frame for acceptance or rejection of deliverables is five (5) business days from receipt, after which the deliverable is assumed to be accepted.</td>
+            </tr>
+            <tr>
+              <td class="sow-label">AREA OF EXPERTISE</td>
+              <td><span class="editable">${details.areaOfExpertise}</span></td>
+            </tr>
+            <tr>
+              <td class="sow-label">PROVIDER POINT OF CONTACT</td>
+              <td><span class="editable">${providerPOC.name}</span>, <span class="editable">${providerPOC.email}</span> Cell No: <span class="editable">${providerPOC.phone}</span></td>
+            </tr>
+            <tr>
+              <td class="sow-label">PAYMENT</td>
+              <td>
+                <p>Notwithstanding anything else in the Agreement and this SOW to the contrary and unless otherwise agreed upon in writing by ${custAbbrev || 'Customer'}, the maximum funding liability under this SOW shall not exceed the "Not to Exceed" quote listed above.</p>
+                <p>Any delays in or to target completion date or changes to resource allocation per section "Resource provided by Provider" due to factors outside of DynPro's control listed in the Change Request clause may have an impact on the total contract value and associated Milestone payment listed above. In the event of such impact, Provider shall obtain ${custAbbrev || 'Customer'}'s prior approval before proceeding with the Services.</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">EXPENSES</td>
+              <td>The rate paid for consulting services is all inclusive. Travel expenses will not be reimbursed until prior approval is attained.</td>
+            </tr>
+            <tr>
+              <td class="sow-label">PLACE OF PERFORMANCE</td>
+              <td>Remote</td>
+            </tr>
+            <tr>
+              <td class="sow-label">CHANGE REQUEST PROCESS</td>
+              <td>
+                <p>It may become necessary to amend this SOW from time to time for reasons including, but not limited to, the following: i) Discretionary changes (as agreed by ${custAbbrev || 'Customer'}) in the scope of the Project; ii) Requested changes to the work hours of Provider personnel; iii) Non-availability of products, resources or services which are beyond Provider's control; or iv) Lack of access to personnel or facilities necessary to complete project. In the event that it is necessary to change this SOW, the following process will be followed: A Change Request (CR) will be the vehicle for communicating change. The CR must describe the change, reasons for the change, and the effect the change will have on the project, which may include scheduling changes, pricing, etc. A CR may be initiated by either ${custAbbrev || 'Customer'} or Provider. The designated Project Manager of the requesting party will review the proposed change and determine whether to submit the request to the other party. Both Project Managers will review the proposed change and approve it or reject it. If further investigation on the part of Provider is required in order to determine the scope of the change, any charges for that investigation will be outlined. Both Project Managers will sign the CR, indicating the acceptance of both parties to the changes, which may affect pricing, schedules, and contractual commitments.</p>
+                <p>Each party has the absolute right to cancel this SOW at any time for its convenience, but both agree to give fifteen (15) days' written notice to the other party of its election to terminate.</p>
+                <p>Upon termination, ${custAbbrev || 'Customer'} shall promptly pay Provider for all Services performed or expenses incurred or obligated prior to the effective date of termination.</p>
+                <p>Once this SOW is signed by the Provider, the resources designated for the SOW should join the project as stipulated. In the event that the candidate does not show up at the project or doesn't report after starting the project. The provider will be directly responsible for providing replacement.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="sow-table sow-signature">
+          <tbody>
+            <tr>
+              <td class="sow-label">STATEMENT OF WORK SIGNATURE</td>
+              <td>
+                <p><strong>${ph(cust, 'Customer Name')}</strong></p>
+                <p>Name:</p>
+                <p>Title:</p>
+                <p>Date:</p>
+                <p>Signature:</p>
+                <br>
+                <p><strong>DynPro Inc.</strong></p>
+                <p>Name: Sanjay K Jain</p>
+                <p>Title: CFO</p>
+                <p>Date:</p>
+                <p>Signature:</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function submitSow() {
+    toast('SOW submitted for approval.', 'success');
+  }
+
+  // ============ TOAST ============
+  let tt;
+  function toast(msg, kind='info') {
+    const el = document.getElementById('toast');
+    el.className = `toast show ${kind}`;
+    el.innerHTML = `${
+      kind==='success' ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' :
+      kind==='error'   ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>' : ''
+    }<span>${msg}</span>`;
+    clearTimeout(tt);
+    tt = setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ============ INIT ============
+  const today = todayISO();
+  document.getElementById('startDate').min = today;
+  document.getElementById('endDate').min = today;
+
+  renderStepper();
+  renderResources();
+</script>
+</body>
+</html>
