@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Change SOW — Project Clarity</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin:0; background:#f8fafc; color:#0f172a; }
+
+  /* Header */
+  .top { background:#fff; border-bottom:1px solid #e2e8f0; padding:14px 32px; display:flex; align-items:center; gap:12px; }
+  .logo-mark { width:32px; height:32px; background:#2563eb; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+  .logo-text { font-weight:600; color:#0f172a; font-size:15px; }
+
+  .page { max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
+
+  .page-title { font-size:24px; font-weight:700; color:#0f172a; margin:0 0 6px 0; }
+  .page-sub { font-size:14px; color:#64748b; margin:0 0 24px 0; }
+
+  /* Step indicator (single-step) */
+  .single-step { background:#fff; border-radius:12px; padding:18px 24px; margin-bottom:24px; box-shadow:0 1px 2px rgba(15,23,42,0.04); border:1px solid #e2e8f0; display:flex; align-items:center; gap:14px; }
+  .single-step .step-circle { width:40px; height:40px; border-radius:9999px; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; box-shadow:0 0 0 4px rgba(37,99,235,0.15); flex-shrink:0; }
+  .single-step .step-info h2 { font-size:16px; font-weight:600; color:#0f172a; margin:0; }
+  .single-step .step-info p { font-size:13px; color:#64748b; margin:2px 0 0 0; }
+
+  /* Panels */
+  .panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:24px 28px; box-shadow:0 1px 2px rgba(15,23,42,0.04); margin-bottom:18px; }
+  .panel h2 { font-size:15px; font-weight:600; color:#0f172a; margin:0 0 4px 0; }
+  .panel .panel-sub { font-size:13px; color:#64748b; margin:0 0 16px 0; }
+
+  /* Form fields */
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .field:last-child { margin-bottom:0; }
+  .field label { font-size:12px; font-weight:500; color:#334155; }
+  .field label .req { color:#dc2626; margin-left:2px; }
+  .field input, .field select, .field textarea {
+    width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px;
+    font-size:13px; color:#0f172a; background:#fff; font-family:inherit; outline:none; transition: all 0.12s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12);
+  }
+  .field textarea { resize:vertical; min-height:80px; }
+  .field .help { font-size:11px; color:#94a3b8; margin-top:2px; }
+
+  /* SOW summary card (shown after picking an SOW) */
+  .sow-summary {
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;
+    padding:14px 16px; margin-top:12px; display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  }
+  .sow-summary .lbl { font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px; }
+  .sow-summary .val { font-size:14px; font-weight:600; color:#0f172a; }
+
+  /* Resource tables (additions / credits) */
+  .change-table-wrap { margin-bottom:14px; }
+  .change-table-wrap h3 { font-size:13px; font-weight:600; margin:0 0 8px 0; display:flex; align-items:center; gap:8px; }
+  .change-table-wrap.add h3 { color:#059669; }
+  .change-table-wrap.cred h3 { color:#dc2626; }
+  .change-table-wrap h3 .pill { font-size:10px; font-weight:600; padding:2px 8px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.05em; }
+  .change-table-wrap.add h3 .pill { background:#ecfdf5; color:#059669; }
+  .change-table-wrap.cred h3 .pill { background:#fef2f2; color:#dc2626; }
+
+  .change-table { width:100%; border-collapse:separate; border-spacing:0; }
+  .change-table th { text-align:left; padding:10px 12px; font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; background:#f8fafc; border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; }
+  .change-table th:first-child { border-left:1px solid #e2e8f0; border-top-left-radius:8px; }
+  .change-table th:last-child { border-right:1px solid #e2e8f0; border-top-right-radius:8px; }
+  .change-table td { padding:10px 12px; border-bottom:1px solid #f1f5f9; }
+  .change-table td:first-child { border-left:1px solid #e2e8f0; }
+  .change-table td:last-child { border-right:1px solid #e2e8f0; }
+  .change-table tr:last-child td { border-bottom:1px solid #e2e8f0; }
+  .change-table tr:last-child td:first-child { border-bottom-left-radius:8px; }
+  .change-table tr:last-child td:last-child { border-bottom-right-radius:8px; }
+  .change-table input, .change-table select { width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; color:#0f172a; background:#fff; outline:none; font-family:inherit; }
+  .change-table input:focus, .change-table select:focus { border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,0.1); }
+  .change-table .num-cell { text-align:right; font-variant-numeric: tabular-nums; }
+  .change-table .subtotal-row td { background:#f8fafc; font-weight:700; }
+
+  .add-row-btn { margin-top:10px; display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1.5px dashed #cbd5e1; border-radius:6px; background:transparent; color:#2563eb; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .add-row-btn:hover { border-color:#2563eb; background:#eff6ff; }
+  .delete-btn { background:none; border:none; cursor:pointer; padding:4px; color:#94a3b8; border-radius:4px; }
+  .delete-btn:hover { color:#dc2626; background:#fef2f2; }
+
+  /* Financial impact panel */
+  .impact { background:#f8fafc; border:1px solid #e2e8f0; }
+  .impact h2 { color:#0f172a; }
+  .impact-grid {
+    display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-top:12px;
+  }
+  .impact-grid .item .lbl { font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+  .impact-grid .item .val { font-size:18px; font-weight:700; color:#0f172a; }
+  .impact-grid .item .val.pos { color:#059669; }
+  .impact-grid .item .val.neg { color:#dc2626; }
+
+  /* Buttons */
+  .actions { display:flex; justify-content:space-between; align-items:center; margin-top:24px; }
+  .btn { padding:10px 18px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid transparent; font-family:inherit; display:inline-flex; align-items:center; gap:8px; }
+  .btn-secondary { background:#fff; color:#475569; border-color:#cbd5e1; }
+  .btn-secondary:hover { background:#f8fafc; }
+  .btn-primary { background:#2563eb; color:#fff; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-success { background:#10b981; color:#fff; font-weight:600; }
+  .btn-success:hover { background:#059669; }
+  .btn-primary:disabled { background:#cbd5e1; cursor:not-allowed; box-shadow:none; }
+
+  /* Toast */
+  .toast { position:fixed; top:20px; right:20px; background:#0f172a; color:#fff; padding:12px 16px; border-radius:8px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,0.15); display:flex; align-items:center; gap:10px; opacity:0; transform:translateY(-8px); transition: all 0.2s; pointer-events:none; z-index:100; }
+  .toast.show { opacity:1; transform:translateY(0); }
+  .toast.success { background:#10b981; }
+  .toast.error { background:#dc2626; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo-mark">C</div>
+  <div class="logo-text">Project Clarity</div>
+  <div style="margin-left:auto;font-size:12px;color:#64748b;">Avnish Ozarkar</div>
+</header>
+
+<div class="page">
+
+  <h1 class="page-title">Change SOW</h1>
+  <p class="page-sub">Modify scope, timeline, or resources for an existing Statement of Work.</p>
+
+  <!-- Single-step indicator -->
+  <div class="single-step">
+    <div class="step-circle">1</div>
+    <div class="step-info">
+      <h2>Change Order details</h2>
+      <p>Pick the SOW to modify, describe the change, and adjust resources.</p>
+    </div>
+  </div>
+
+  <!-- ========== SECTION 1: Pick SOW ========== -->
+  <div class="panel">
+    <h2>Select SOW to modify</h2>
+    <p class="panel-sub">Pick the active SOW you want to amend. Pulled from Project Clarity database.</p>
+
+    <div class="field">
+      <label>Existing SOW<span class="req">*</span></label>
+      <select id="existingSow" onchange="onSowChange()">
+        <option value="">Select an SOW…</option>
+        <option value="sow-1031">SOW-1031 — SurveyMonkey · Survey Platform Q2 Expansion</option>
+        <option value="sow-1029">SOW-1029 — Workato · Connector Library Refresh</option>
+        <option value="sow-1024">SOW-1024 — Acme Corp · QA Augmentation 2026</option>
+        <option value="sow-1018">SOW-1018 — Globex · Data Lake Setup</option>
+        <option value="sow-1011">SOW-1011 — Initech · Migration Phase 2</option>
+      </select>
+    </div>
+
+    <div id="sowSummary" class="sow-summary" style="display:none;">
+      <div><div class="lbl">Customer</div><div class="val" id="sumCustomer">—</div></div>
+      <div><div class="lbl">Original Value</div><div class="val" id="sumValue">—</div></div>
+      <div><div class="lbl">Original End Date</div><div class="val" id="sumEnd">—</div></div>
+      <div><div class="lbl">Status</div><div class="val" id="sumStatus">—</div></div>
+    </div>
+  </div>
+
+  <!-- ========== SECTION 2: Change Details ========== -->
+  <div class="panel">
+    <h2>Change details</h2>
+    <p class="panel-sub">Type, reason, and effective date of the change.</p>
+
+    <div class="row">
+      <div class="field">
+        <label>Change type<span class="req">*</span></label>
+        <select id="changeType" onchange="onChangeTypeChange()">
+          <option value="">Select a type…</option>
+          <option value="timeline">Timeline extension</option>
+          <option value="scope">Scope change</option>
+          <option value="resource">Resource adjustment</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Effective date<span class="req">*</span></label>
+        <input type="date" id="effectiveDate"/>
+        <div class="help">Date the change takes effect.</div>
+      </div>
+    </div>
+
+    <div class="field" id="newEndDateField" style="display:none;">
+      <label>New end date<span class="req">*</span></label>
+      <input type="date" id="newEndDate"/>
+      <div class="help">Required for timeline extensions.</div>
+    </div>
+
+    <div class="field">
+      <label>Reason for change<span class="req">*</span></label>
+      <textarea id="reason" placeholder="e.g. Customer requested additional integration work beyond original scope" oninput="updateImpact()"></textarea>
+    </div>
+  </div>
+
+  <!-- ========== SECTION 3: Resource Changes ========== -->
+  <div class="panel">
+    <h2>Resource changes</h2>
+    <p class="panel-sub">Add new resources or credit existing ones. Net impact updates automatically.</p>
+
+    <!-- Additions table -->
+    <div class="change-table-wrap add">
+      <h3>Additions <span class="pill">+ Resources to add</span></h3>
+      <table class="change-table">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Location</th>
+            <th class="num-cell">Hours</th>
+            <th class="num-cell">Bill Rate ($/hr)</th>
+            <th class="num-cell">Cost</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="additionsBody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addRow('add')">
+        <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        Add resource
+      </button>
+    </div>
+
+    <div style="height:18px;"></div>
+
+    <!-- Credits table -->
+    <div class="change-table-wrap cred">
+      <h3>Credits <span class="pill">− Resources to remove</span></h3>
+      <table class="change-table">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Location</th>
+            <th class="num-cell">Hours</th>
+            <th class="num-cell">Bill Rate ($/hr)</th>
+            <th class="num-cell">Credit</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="creditsBody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addRow('cred')">
+        <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        Add credit
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== SECTION 4: Financial Impact ========== -->
+  <div class="panel impact">
+    <h2>Financial impact</h2>
+    <p class="panel-sub">Auto-calculated from the additions and credits above.</p>
+
+    <div class="impact-grid">
+      <div class="item"><div class="lbl">Original value</div><div class="val" id="origValue">$0</div></div>
+      <div class="item"><div class="lbl">Additions</div><div class="val pos" id="addValue">+$0</div></div>
+      <div class="item"><div class="lbl">Credits</div><div class="val neg" id="credValue">−$0</div></div>
+      <div class="item"><div class="lbl">Net change</div><div class="val" id="netValue">$0</div></div>
+      <div class="item"><div class="lbl">New SOW value</div><div class="val" id="newValue">$0</div></div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="cancelChange()">Cancel</button>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" onclick="saveDraft()">Save draft</button>
+      <button id="submitBtn" class="btn btn-success" onclick="submitChange()">Submit for approval
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // Mock SOW data
+  const sows = {
+    'sow-1031': { customer: 'SurveyMonkey', value: 340000, end: '07/24/2026', status: 'Active' },
+    'sow-1029': { customer: 'Workato',      value: 210000, end: '06/30/2026', status: 'Active' },
+    'sow-1024': { customer: 'Acme Corp',    value: 580000, end: '12/15/2026', status: 'Active' },
+    'sow-1018': { customer: 'Globex',       value: 185000, end: '09/05/2026', status: 'Active' },
+    'sow-1011': { customer: 'Initech',      value: 420000, end: '10/20/2026', status: 'Active' },
+  };
+
+  const ROLES = ['Data Architect','Data Engineer','Project Manager','Software Engineer','QA Engineer','Business Analyst','Solution Architect'];
+
+  let additions = [];
+  let credits = [];
+
+  function todayISO() {
+    const d = new Date();
+    const tz = d.getTimezoneOffset() * 60000;
+    return new Date(d - tz).toISOString().slice(0,10);
+  }
+
+  // Set min date on effective date inputs
+  document.getElementById('effectiveDate').min = todayISO();
+
+  function onSowChange() {
+    const key = document.getElementById('existingSow').value;
+    const summary = document.getElementById('sowSummary');
+    if (!key) { summary.style.display = 'none'; updateImpact(); return; }
+    const sow = sows[key];
+    document.getElementById('sumCustomer').textContent = sow.customer;
+    document.getElementById('sumValue').textContent = '$' + sow.value.toLocaleString();
+    document.getElementById('sumEnd').textContent = sow.end;
+    document.getElementById('sumStatus').textContent = sow.status;
+    summary.style.display = 'grid';
+    document.getElementById('newEndDate').min = todayISO();
+    updateImpact();
+  }
+
+  function onChangeTypeChange() {
+    const type = document.getElementById('changeType').value;
+    const newEndField = document.getElementById('newEndDateField');
+    newEndField.style.display = (type === 'timeline') ? '' : 'none';
+  }
+
+  function rowHtml(kind, r, i) {
+    return `
+      <tr>
+        <td>
+          <select onchange="updateRow('${kind}', ${i}, 'role', this.value)">
+            ${ROLES.map(role => `<option ${role===r.role?'selected':''}>${role}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          <select onchange="updateRow('${kind}', ${i}, 'location', this.value)">
+            <option ${r.location==='Onshore'?'selected':''}>Onshore</option>
+            <option ${r.location==='Offshore'?'selected':''}>Offshore</option>
+          </select>
+        </td>
+        <td class="num-cell"><input type="number" min="0" value="${r.hours||0}" onchange="updateRow('${kind}', ${i}, 'hours', +this.value)"/></td>
+        <td class="num-cell"><input type="number" min="0" value="${r.rate||0}" onchange="updateRow('${kind}', ${i}, 'rate', +this.value)"/></td>
+        <td class="num-cell"><strong>${kind==='cred' ? '−' : ''}$${(r.hours * r.rate).toLocaleString()}</strong></td>
+        <td><button class="delete-btn" onclick="removeRow('${kind}', ${i})">
+          <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button></td>
+      </tr>`;
+  }
+
+  function renderRows() {
+    const aBody = document.getElementById('additionsBody');
+    const cBody = document.getElementById('creditsBody');
+    aBody.innerHTML = additions.length
+      ? additions.map((r,i) => rowHtml('add', r, i)).join('') +
+        `<tr class="subtotal-row"><td colspan="4" style="text-align:right;">Subtotal</td><td class="num-cell" style="color:#059669;">+$${additions.reduce((s,r)=>s+r.hours*r.rate,0).toLocaleString()}</td><td></td></tr>`
+      : `<tr><td colspan="6" style="text-align:center;color:#94a3b8;font-size:12px;padding:18px;">No additions yet. Click "Add resource" below.</td></tr>`;
+    cBody.innerHTML = credits.length
+      ? credits.map((r,i) => rowHtml('cred', r, i)).join('') +
+        `<tr class="subtotal-row"><td colspan="4" style="text-align:right;">Subtotal</td><td class="num-cell" style="color:#dc2626;">−$${credits.reduce((s,r)=>s+r.hours*r.rate,0).toLocaleString()}</td><td></td></tr>`
+      : `<tr><td colspan="6" style="text-align:center;color:#94a3b8;font-size:12px;padding:18px;">No credits yet. Click "Add credit" below.</td></tr>`;
+    updateImpact();
+  }
+
+  function addRow(kind) {
+    const arr = (kind === 'add') ? additions : credits;
+    arr.push({ role:'Software Engineer', location:'Onshore', hours:0, rate:100 });
+    renderRows();
+  }
+  function removeRow(kind, i) {
+    const arr = (kind === 'add') ? additions : credits;
+    arr.splice(i, 1);
+    renderRows();
+  }
+  function updateRow(kind, i, field, val) {
+    const arr = (kind === 'add') ? additions : credits;
+    if (val < 0) val = 0;
+    arr[i][field] = val;
+    renderRows();
+  }
+
+  function updateImpact() {
+    const sowKey = document.getElementById('existingSow').value;
+    const orig = sowKey ? sows[sowKey].value : 0;
+    const addTotal = additions.reduce((s,r) => s + r.hours * r.rate, 0);
+    const credTotal = credits.reduce((s,r) => s + r.hours * r.rate, 0);
+    const net = addTotal - credTotal;
+    const newVal = orig + net;
+
+    document.getElementById('origValue').textContent = '$' + orig.toLocaleString();
+    document.getElementById('addValue').textContent = '+$' + addTotal.toLocaleString();
+    document.getElementById('credValue').textContent = '−$' + credTotal.toLocaleString();
+    const netEl = document.getElementById('netValue');
+    netEl.textContent = (net >= 0 ? '+$' : '−$') + Math.abs(net).toLocaleString();
+    netEl.className = 'val ' + (net >= 0 ? 'pos' : 'neg');
+    document.getElementById('newValue').textContent = '$' + newVal.toLocaleString();
+  }
+
+  function submitChange() {
+    if (!document.getElementById('existingSow').value) { toast('Please select an SOW.', 'error'); return; }
+    if (!document.getElementById('changeType').value) { toast('Please select a change type.', 'error'); return; }
+    if (!document.getElementById('effectiveDate').value) { toast('Please pick an effective date.', 'error'); return; }
+    if (!document.getElementById('reason').value.trim()) { toast('Please describe the reason for change.', 'error'); return; }
+    if (additions.length === 0 && credits.length === 0) { toast('Add at least one addition or credit.', 'error'); return; }
+    toast('Change Order submitted for approval.', 'success');
+  }
+  function saveDraft() { toast('Draft saved.', 'success'); }
+  function cancelChange() {
+    if (confirm('Discard this change order?')) toast('Cancelled.', 'info');
+  }
+
+  let tt;
+  function toast(msg, kind='info') {
+    const el = document.getElementById('toast');
+    el.className = `toast show ${kind}`;
+    el.innerHTML = `${
+      kind==='success' ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' :
+      kind==='error'   ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>' : ''
+    }<span>${msg}</span>`;
+    clearTimeout(tt);
+    tt = setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // INIT
+  renderRows();
+</script>
+</body>
+</html>

@@ -96,7 +96,7 @@
   /* Resource cards (per-period allocation) */
   .resource-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:14px; box-shadow:0 1px 2px rgba(15,23,42,0.04); overflow:hidden; }
   .resource-header {
-    display:grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 40px;
+    display:grid; grid-template-columns: 1.4fr 1.4fr 1fr 1fr 1fr 40px;
     gap:12px; padding:14px 18px; align-items:end;
     background:#f8fafc; border-bottom:1px solid #e2e8f0;
   }
@@ -158,6 +158,17 @@
   .totals .item .val.pos { color:#10b981; }
   .totals .item .val.neg { color:#dc2626; }
 
+  /* Margin warning banner */
+  .margin-warning {
+    margin-top:16px; padding:14px 18px; border-radius:10px;
+    background:#fef2f2; border:1px solid #fecaca; display:none; align-items:flex-start; gap:12px;
+  }
+  .margin-warning.show { display:flex; }
+  .margin-warning .icon { width:32px; height:32px; border-radius:8px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .margin-warning .content { flex:1; }
+  .margin-warning .title { font-size:13px; font-weight:600; color:#991b1b; margin:0 0 2px 0; }
+  .margin-warning .body { font-size:12px; color:#7f1d1d; margin:0; line-height:1.5; }
+
   /* SOW Document layout */
   .sow-doc { font-family: 'Inter', sans-serif; color:#0f172a; line-height:1.6; padding:32px 40px; background:#fff; }
   .sow-header { display:flex; justify-content:flex-end; margin-bottom:24px; }
@@ -179,6 +190,21 @@
   .sow-signature p { margin:0 0 4px 0; }
   .sow-doc .editable { background:#fef9c3; padding:1px 4px; border-radius:3px; cursor:text; }
   .sow-doc .placeholder { color:#94a3b8; font-style:italic; }
+
+  /* Signature field edit pattern (pencil icon → input) */
+  .sig-value { font-weight:500; color:#0f172a; padding:1px 2px; }
+  .sig-edit-btn {
+    background:none; border:none; cursor:pointer; color:#94a3b8;
+    padding:2px 4px; border-radius:3px; margin-left:4px; vertical-align:middle;
+    transition: all 0.12s;
+  }
+  .sig-edit-btn:hover { color:#2563eb; background:#eff6ff; }
+  .sig-input {
+    padding:3px 8px; border:1px solid #2563eb; border-radius:4px;
+    font-size:inherit; font-family:inherit; outline:none;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.12);
+    min-width:220px;
+  }
 
   /* Print styles */
   @media print {
@@ -314,6 +340,17 @@
       <div id="priorResults" class="reuse-results"></div>
     </div>
 
+    <div style="height:12px;"></div>
+
+    <div class="reuse-box">
+      <div class="icon" style="background:#dbeafe;color:#2563eb;">
+        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <span class="label">Branch from a current active SOW</span>
+      <input id="currentSearch" type="text" placeholder="Search active SOWs by # or customer…" oninput="filterCurrent(this.value)" onfocus="filterCurrent(this.value)" onclick="event.stopPropagation();"/>
+      <div id="currentResults" class="reuse-results"></div>
+    </div>
+
     <div class="actions">
       <div></div>
       <button class="btn btn-primary" onclick="nextStep()">Continue
@@ -369,7 +406,7 @@
 
       <div class="field">
         <label>Project description<span class="req">*</span></label>
-        <textarea id="description" placeholder="Describe the engagement, scope, and key deliverables…" oninput="document.getElementById('descCount').textContent = this.value.length; updatePreview();"></textarea>
+        <textarea id="description" placeholder="Describe the engagement, scope, and key deliverables…" oninput="document.getElementById('descCount').textContent = this.value.length;"></textarea>
         <div class="help"><span id="descCount">0</span> / 500 characters</div>
       </div>
     </div>
@@ -404,6 +441,16 @@
       <div class="item"><div class="lbl">Margin $</div><div class="val" id="totMargin">$0</div></div>
       <div class="item"><div class="lbl">Margin %</div><div class="val" id="totMarginPct">0%</div></div>
       <div class="item"><div class="lbl">Resources</div><div class="val" id="totResources">0</div></div>
+    </div>
+
+    <div class="margin-warning" id="marginWarning">
+      <div class="icon">
+        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <div class="content">
+        <p class="title">Margin below 40% — SLT approval required</p>
+        <p class="body">Operating margin is currently <strong id="warningMarginVal">—</strong>, below the 40% threshold. This SOW will route through the SLT approval chain: BU Head → CRO → Shiv. Consider adjusting bill rates or reducing offshore mix to bring margin above 40%.</p>
+      </div>
     </div>
 
     <div class="actions">
@@ -468,6 +515,13 @@
     { id: 'SOW-1011', customer: 'Initech',      value: '$420k', type: 'elaborate' },
   ];
 
+  const currentSows = [
+    { id: 'SOW-1042', customer: 'SurveyMonkey', value: '$210k', type: 'elaborate', status: 'Active' },
+    { id: 'SOW-1041', customer: 'Workato',      value: '$95k',  type: 'lean',      status: 'Active' },
+    { id: 'SOW-1039', customer: 'Acme Corp',    value: '$320k', type: 'hybrid',    status: 'Active' },
+    { id: 'SOW-1036', customer: 'Globex',       value: '$145k', type: 'lean',      status: 'Active' },
+  ];
+
   const customerLabels = { surveymonkey:'SurveyMonkey', workato:'Workato', acme:'Acme Corp', globex:'Globex', initech:'Initech' };
   const typeLabels = { lean:'Lean T&M', elaborate:'Elaborate T&M', fixed:'Fixed Fee', hybrid:'Hybrid' };
   const ROLES = ['Data Architect','Data Engineer','Project Manager','Software Engineer','QA Engineer','Business Analyst','Solution Architect'];
@@ -476,8 +530,8 @@
   let currentStep = 1;
   let selectedTemplate = null;
   let resources = [
-    { role: 'Data Architect', location: 'Onshore',  rate: 150, flcRate: 90, periods: [{ startDate: '', endDate: '', hours: 0 }] },
-    { role: 'Data Engineer',  location: 'Offshore', rate: 75,  flcRate: 35, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+    { role: 'Data Architect', name: '', location: 'Onshore',  rate: 150, flcRate: 90, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+    { role: 'Data Engineer',  name: '', location: 'Offshore', rate: 75,  flcRate: 35, periods: [{ startDate: '', endDate: '', hours: 0 }] },
   ];
 
   // ============ STEPPER ============
@@ -567,7 +621,41 @@
   }
   document.addEventListener('click', () => {
     document.getElementById('priorResults').classList.remove('show');
+    document.getElementById('currentResults').classList.remove('show');
   });
+
+  function filterCurrent(q) {
+    const results = document.getElementById('currentResults');
+    const query = (q || '').toLowerCase().trim();
+    const matches = currentSows.filter(s => s.id.toLowerCase().includes(query) || s.customer.toLowerCase().includes(query));
+    if (!matches.length) {
+      results.innerHTML = '<div class="reuse-item" style="color:#94a3b8;cursor:default;">No matches</div>';
+    } else {
+      results.innerHTML = matches.map(s => `
+        <div class="reuse-item" onclick="pickCurrent('${s.id}','${s.customer}','${s.type}','${s.value}'); event.stopPropagation();">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-weight:600;color:#0f172a;">${s.id} · ${s.customer}</div>
+            <span style="font-size:10px;font-weight:600;background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;">${s.status}</span>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px;">${typeLabels[s.type]} · ${s.value}</div>
+        </div>`).join('');
+    }
+    results.classList.add('show');
+  }
+  function pickCurrent(id, customer, type, value) {
+    document.getElementById('currentSearch').value = `${id} · ${customer}`;
+    document.getElementById('currentResults').classList.remove('show');
+    selectTemplate(type);
+    const slug = Object.keys(customerLabels).find(k => customerLabels[k] === customer);
+    if (slug) {
+      document.getElementById('customer').value = slug;
+      onCustomerChange();
+    }
+    document.getElementById('projectName').value = `${customer} — branched from ${id}`;
+    document.getElementById('description').value = `Branched from active SOW ${id} (${typeLabels[type]}, ${value}). Edit as needed.`;
+    document.getElementById('descCount').textContent = document.getElementById('description').value.length;
+    toast(`Branched from active SOW ${id}.`, 'success');
+  }
 
   // ============ STEP 2: CUSTOMER ============
   function onCustomerChange() {
@@ -622,11 +710,20 @@
     const body = document.getElementById('resourceBody');
     body.innerHTML = resources.map((r, i) => {
       const total = getResourceHours(r);
-      const fees = total * (+r.rate || 0);
-      const cost = total * (+r.flcRate || 0);
+      const rate = +r.rate || 0;
+      const flcRate = +r.flcRate || 0;
+      const fees = total * rate;
+      const cost = total * flcRate;
       const margin = fees - cost;
-      const marginPct = fees > 0 ? (margin / fees) * 100 : 0;
-      const marginClass = margin >= 0 ? 'pos' : 'neg';
+      // Margin %: use full margin when hours > 0, otherwise fall back to per-hour rate margin
+      let marginPct = 0;
+      if (fees > 0) marginPct = (margin / fees) * 100;
+      else if (rate > 0) marginPct = ((rate - flcRate) / rate) * 100;
+      // Margin $ display: show per-hour rate when hours = 0 so changes to rate/FLC are visible
+      const marginValDisplay = total > 0
+        ? `$${margin.toLocaleString()}`
+        : `$${(rate - flcRate).toLocaleString()}<span style="font-size:10px;font-weight:500;color:#64748b;"> / hr</span>`;
+      const marginClass = (total > 0 ? margin : (rate - flcRate)) >= 0 ? 'pos' : 'neg';
       return `
       <div class="resource-card">
         <div class="resource-header">
@@ -635,6 +732,10 @@
             <select onchange="updateResource(${i}, 'role', this.value)">
               ${ROLES.map(role => `<option ${role===r.role?'selected':''}>${role}</option>`).join('')}
             </select>
+          </div>
+          <div>
+            <label>Resource Name</label>
+            <input type="text" placeholder="e.g. Sarah Chen" value="${r.name || ''}" onchange="updateResource(${i}, 'name', this.value)"/>
           </div>
           <div>
             <label>Location</label>
@@ -660,7 +761,7 @@
           <div class="item"><div class="lbl">Total Hours</div><div class="val">${total.toLocaleString()}</div></div>
           <div class="item"><div class="lbl">Total Fees</div><div class="val">$${fees.toLocaleString()}</div></div>
           <div class="item"><div class="lbl">Total Cost</div><div class="val">$${cost.toLocaleString()}</div></div>
-          <div class="item"><div class="lbl">Margin $</div><div class="val ${marginClass}">$${margin.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Margin $</div><div class="val ${marginClass}">${marginValDisplay}</div></div>
           <div class="item"><div class="lbl">Margin %</div><div class="val ${marginClass}">${marginPct.toFixed(1)}%</div></div>
         </div>
 
@@ -692,7 +793,7 @@
   }
 
   function addResource() {
-    resources.push({ role: 'Software Engineer', location: 'Onshore', rate: 100, flcRate: 60, periods: [{ startDate: '', endDate: '', hours: 0 }] });
+    resources.push({ role: 'Software Engineer', name: '', location: 'Onshore', rate: 100, flcRate: 60, periods: [{ startDate: '', endDate: '', hours: 0 }] });
     renderResources();
   }
   function removeResource(i) { resources.splice(i, 1); renderResources(); }
@@ -716,6 +817,16 @@
     renderResources();
   }
 
+  function autoFillPeriodHours(p) {
+    if (p.startDate && p.endDate) {
+      const weeks = Math.max(1, Math.round((new Date(p.endDate) - new Date(p.startDate)) / (1000 * 60 * 60 * 24 * 7)));
+      // Auto-fill only if hours is empty/0 so manual edits are preserved
+      if (!p.hours || +p.hours === 0) {
+        p.hours = weeks * 40;
+      }
+    }
+  }
+
   function updatePeriod(i, pi, field, val) {
     const p = resources[i].periods[pi];
     if (field === 'hours' && val < 0) { val = 0; renderResources(); return; }
@@ -725,6 +836,7 @@
         p.endDate = '';
         toast('End date cleared — must be on or after start date.', 'error');
       }
+      autoFillPeriodHours(p);
       renderResources();
       return;
     }
@@ -735,6 +847,7 @@
         return;
       }
       p.endDate = val;
+      autoFillPeriodHours(p);
       renderResources();
       return;
     }
@@ -760,6 +873,14 @@
     marginPctEl.textContent = totMarginPct.toFixed(1) + '%';
     marginPctEl.className = 'val ' + cls;
     document.getElementById('totResources').textContent = resources.length;
+
+    // Margin warning: trigger when margin is below 40% AND there's actual financial data
+    const warning = document.getElementById('marginWarning');
+    if (warning) {
+      const showWarning = (totFees > 0 || totHours > 0) && totMarginPct < 40;
+      warning.classList.toggle('show', showWarning);
+      if (showWarning) document.getElementById('warningMarginVal').textContent = totMarginPct.toFixed(1) + '%';
+    }
   }
 
   // ============ STEP 4: REVIEW (full SOW document) ============
@@ -860,6 +981,14 @@
     phone: '281-840-9255',
   };
 
+  const customerSignatories = {
+    surveymonkey: { name: 'Sarah Chen',       title: 'VP of Operations' },
+    workato:      { name: 'Michael Patel',    title: 'Director of Procurement' },
+    acme:         { name: 'Jennifer Brooks',  title: 'Chief Operating Officer' },
+    globex:       { name: 'David Martinez',   title: 'Chief Technology Officer' },
+    initech:      { name: 'Robert Kim',       title: 'VP of Engineering' },
+  };
+
   function formatDate(iso) {
     if (!iso) return '';
     const [y, m, d] = iso.split('-');
@@ -870,8 +999,50 @@
     const ms = new Date(endISO) - new Date(startISO);
     return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24 * 7)));
   }
+  function durationDisplay(startISO, endISO) {
+    if (!startISO || !endISO) return '1 week';
+    const ms = new Date(endISO) - new Date(startISO);
+    if (ms <= 0) return '1 day';
+    const days = Math.round(ms / (1000 * 60 * 60 * 24));
+    if (days < 7) return days === 1 ? '1 day' : `${days} days`;
+    const weeks = Math.round(days / 7);
+    return weeks === 1 ? '1 week' : `${weeks} weeks`;
+  }
   function ph(val, placeholder) {
     return val ? `<span class="editable">${val}</span>` : `<span class="placeholder">[${placeholder}]</span>`;
+  }
+
+  function sigField(label, value) {
+    const safe = String(value).replace(/"/g, '&quot;');
+    return `<p>${label}: <span class="sig-value">${value}</span><button class="sig-edit-btn" onclick="editSigField(this)" title="Edit ${label}">
+      <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    </button></p>`;
+  }
+
+  function editSigField(btn) {
+    const span = btn.previousElementSibling;
+    const original = span.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = original;
+    input.className = 'sig-input';
+    span.replaceWith(input);
+    btn.style.display = 'none';
+    input.focus();
+    input.select();
+
+    const save = () => {
+      const newSpan = document.createElement('span');
+      newSpan.className = 'sig-value';
+      newSpan.textContent = input.value || original;
+      input.replaceWith(newSpan);
+      btn.style.display = '';
+    };
+    input.addEventListener('blur', save, { once: true });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { input.value = original; input.blur(); }
+    });
   }
 
   function renderReview() {
@@ -895,6 +1066,7 @@
     const customerEmail = customerContacts[custKey] || 'contact@customer.com';
     const sowKey = selectedTemplate || 'elaborate';
     const details = sowTypeDetails[sowKey];
+    const custSig = customerSignatories[custKey] || { name: 'Authorized Signatory', title: 'Authorized Signatory' };
 
     document.getElementById('reviewPanel').innerHTML = `
       <div class="sow-doc">
@@ -940,7 +1112,7 @@
                   </thead>
                   <tbody>
                     ${resources.map(r => `<tr>
-                      <td>${r.role}</td>
+                      <td>${r.role}${r.name ? ` — <em>${r.name}</em>` : ''}</td>
                       <td>${r.location}</td>
                       <td>${getResourceHours(r).toLocaleString()}</td>
                     </tr>`).join('')}
@@ -960,7 +1132,7 @@
                 <ul>
                   <li>Start Date: ${ph(start, 'Start Date')}</li>
                   <li>End Date: ${ph(end, 'End Date')}</li>
-                  <li>Duration: ${duration ? `<span class="editable">${duration} weeks</span>` : '<span class="placeholder">[Duration]</span>'}</li>
+                  <li>Duration: <span class="editable">${durationDisplay(startRaw, endRaw)}</span></li>
                 </ul>
               </td>
             </tr>
@@ -1020,17 +1192,17 @@
             <tr>
               <td class="sow-label">STATEMENT OF WORK SIGNATURE</td>
               <td>
-                <p><strong>${ph(cust, 'Customer Name')}</strong></p>
-                <p>Name:</p>
-                <p>Title:</p>
-                <p>Date:</p>
-                <p>Signature:</p>
+                <p><strong>${cust || 'Customer Name'}</strong></p>
+                ${sigField('Name', custSig.name)}
+                ${sigField('Title', custSig.title)}
+                ${sigField('Date', effective)}
+                ${sigField('Signature', '[Pending DocuSign signature]')}
                 <br>
                 <p><strong>DynPro Inc.</strong></p>
                 <p>Name: Sanjay K Jain</p>
                 <p>Title: CFO</p>
-                <p>Date:</p>
-                <p>Signature:</p>
+                <p>Date: ${effective}</p>
+                <p>Signature: [Pending DocuSign signature]</p>
               </td>
             </tr>
           </tbody>
@@ -1040,7 +1212,20 @@
   }
 
   function submitSow() {
-    toast('SOW submitted for approval.', 'success');
+    toast('SOW submitted for approval. Returning to home.', 'success');
+    // Reset wizard state
+    selectedTemplate = null;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    resetCustomerProjectForm();
+    resources = [
+      { role: 'Data Architect', name: '', location: 'Onshore',  rate: 150, flcRate: 90, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+      { role: 'Data Engineer',  name: '', location: 'Offshore', rate: 75,  flcRate: 35, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+    ];
+    // Navigate back to Step 1
+    currentStep = 1;
+    renderStepper();
+    renderResources();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ============ TOAST ============
@@ -1061,8 +1246,37 @@
   document.getElementById('startDate').min = today;
   document.getElementById('endDate').min = today;
 
+  // ----- Pre-fill demo data so the wizard opens directly on Step 4 (SOW document) -----
+  // Step 1: SOW Type
+  selectedTemplate = 'elaborate';
+  document.querySelector(`[data-template="${selectedTemplate}"]`).classList.add('selected');
+
+  // Step 2: Customer & Project
+  document.getElementById('customer').value = 'surveymonkey';
+  onCustomerChange();
+  document.getElementById('opportunity').value = 'OPP-2041';
+  document.getElementById('projectName').value = 'Survey Platform Q2 Expansion';
+  document.getElementById('startDate').value = '2026-05-18';
+  document.getElementById('endDate').value = '2026-08-10';
+  const demoDescription = 'Phase 1 build-out of the Survey Analytics platform: instrumentation, reporting pipeline, and three customer-facing dashboards. Includes integration with the existing data warehouse and rollout of new visualization templates.';
+  document.getElementById('description').value = demoDescription;
+  document.getElementById('descCount').textContent = demoDescription.length;
+
+  // Step 3: Resource Planning — pre-filled with names, periods, hours
+  resources = [
+    { role: 'Data Architect', name: 'Grant Holden',  location: 'Onshore',  rate: 150, flcRate: 90,
+      periods: [{ startDate: '2026-05-18', endDate: '2026-08-10', hours: 480 }] },
+    { role: 'Data Engineer',  name: 'Saurav Kumar',  location: 'Offshore', rate: 75,  flcRate: 35,
+      periods: [{ startDate: '2026-05-18', endDate: '2026-08-10', hours: 480 }] },
+    { role: 'Project Manager',name: 'Cara Yost',     location: 'Onshore',  rate: 145, flcRate: 90,
+      periods: [{ startDate: '2026-05-18', endDate: '2026-08-10', hours: 240 }] },
+  ];
+
+  // Land directly on Step 4 (SOW document)
+  currentStep = 4;
   renderStepper();
   renderResources();
+  renderReview();
 </script>
 </body>
 </html>
