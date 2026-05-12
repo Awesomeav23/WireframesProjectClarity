@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create new SOW — Project Clarity</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin:0; background:#f8fafc; color:#0f172a; }
+
+  /* Header */
+  .top { background:#fff; border-bottom:1px solid #e2e8f0; padding:14px 32px; display:flex; align-items:center; gap:12px; }
+  .logo-mark { width:32px; height:32px; background:#2563eb; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+  .logo-text { font-weight:600; color:#0f172a; font-size:15px; }
+
+  /* Page wrapper */
+  .page { max-width:1100px; margin:0 auto; padding:32px 24px 100px; }
+
+  /* ============ STEPPER ============ */
+  .stepper-wrap { background:#fff; border-radius:12px; padding:32px 48px 60px; margin-bottom:32px; box-shadow:0 1px 2px rgba(15,23,42,0.04); border:1px solid #e2e8f0; }
+  .stepper { display:flex; align-items:center; }
+  .step-col { flex:0 0 48px; width:48px; height:48px; position:relative; cursor:pointer; }
+  .step-circle {
+    width:48px; height:48px; border-radius:9999px; display:flex; align-items:center; justify-content:center;
+    font-size:18px; font-weight:600; transition: all 0.2s; background:#fff; border:2px solid #cbd5e1; color:#94a3b8;
+    position:relative; z-index:2;
+  }
+  .step-col.done .step-circle { background:#10b981; border-color:#10b981; color:#fff; }
+  .step-col.active .step-circle { background:#2563eb; border-color:#2563eb; color:#fff; box-shadow:0 0 0 4px rgba(37,99,235,0.15); }
+  .step-label {
+    position:absolute; top:60px; left:50%; transform:translateX(-50%);
+    white-space:nowrap; font-size:14px; font-weight:600; color:#94a3b8; text-align:center;
+  }
+  .step-col.done .step-label { color:#10b981; }
+  .step-col.active .step-label { color:#2563eb; }
+  .step-line { flex:1; height:3px; background:#e2e8f0; transition: background 0.3s; }
+  .step-line.done { background:#2563eb; }
+
+  /* ============ STEP CONTENT ============ */
+  .step-content { display:none; }
+  .step-content.active { display:block; }
+  .step-title { font-size:24px; font-weight:700; color:#0f172a; margin:0 0 6px 0; }
+  .step-sub { font-size:14px; color:#64748b; margin:0 0 24px 0; }
+
+  .panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:24px 28px; box-shadow:0 1px 2px rgba(15,23,42,0.04); }
+
+  /* Form fields */
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .field:last-child { margin-bottom:0; }
+  .field label { font-size:12px; font-weight:500; color:#334155; }
+  .field label .req { color:#dc2626; margin-left:2px; }
+  .field input, .field select, .field textarea {
+    width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px;
+    font-size:13px; color:#0f172a; background:#fff; font-family:inherit; outline:none; transition: all 0.12s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12);
+  }
+  .field textarea { resize:vertical; min-height:90px; }
+  .field .help { font-size:11px; color:#94a3b8; margin-top:2px; }
+
+  /* SOW Type cards */
+  .type-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .type-card {
+    background:#fff; border:1.5px solid #e2e8f0; border-radius:12px;
+    padding:24px; cursor:pointer; transition: all 0.15s; position:relative;
+  }
+  .type-card:hover { border-color:#93c5fd; transform:translateY(-2px); box-shadow:0 12px 24px -8px rgba(15,23,42,0.10); }
+  .type-card.selected { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+  .type-card .check { position:absolute; top:14px; right:14px; width:22px; height:22px; border-radius:9999px; background:#2563eb; color:#fff; display:none; align-items:center; justify-content:center; }
+  .type-card.selected .check { display:flex; }
+  .type-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .type-name { font-size:16px; font-weight:600; color:#0f172a; margin:0 0 4px 0; }
+  .type-desc { font-size:13px; color:#64748b; line-height:1.5; margin:0; }
+
+  /* Reuse box (Speed it up) */
+  .reuse-box {
+    background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;
+    padding:14px 16px; display:flex; align-items:center; gap:12px; position:relative;
+  }
+  .reuse-box .icon { width:32px; height:32px; border-radius:8px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; color:#475569; flex-shrink:0; }
+  .reuse-box .label { font-size:13px; font-weight:500; color:#334155; flex:1; }
+  .reuse-box input { flex:0 0 240px; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; outline:none; background:#fff; }
+  .reuse-results {
+    position:absolute; top:calc(100% + 4px); right:0; width:280px;
+    background:#fff; border:1px solid #e2e8f0; border-radius:8px;
+    box-shadow:0 8px 24px -6px rgba(15,23,42,0.12); display:none; max-height:240px; overflow-y:auto; z-index:10;
+  }
+  .reuse-results.show { display:block; }
+  .reuse-item { padding:9px 12px; font-size:12px; cursor:pointer; border-bottom:1px solid #f1f5f9; }
+  .reuse-item:hover { background:#f8fafc; }
+  .reuse-item:last-child { border-bottom:none; }
+
+  /* Resource cards (per-period allocation) */
+  .resource-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:14px; box-shadow:0 1px 2px rgba(15,23,42,0.04); overflow:hidden; }
+  .resource-header {
+    display:grid; grid-template-columns: 1.4fr 1.4fr 1fr 1fr 1fr 40px;
+    gap:12px; padding:14px 18px; align-items:end;
+    background:#f8fafc; border-bottom:1px solid #e2e8f0;
+  }
+  .resource-header label { font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:4px; }
+  .resource-header select, .resource-header input {
+    width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px;
+    font-size:13px; color:#0f172a; background:#fff; font-family:inherit; outline:none;
+  }
+  .resource-header select:focus, .resource-header input:focus { border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,0.1); }
+
+  /* Per-resource financial summary strip */
+  .resource-financials {
+    display:grid; grid-template-columns: repeat(5, 1fr); gap:16px;
+    padding:12px 18px; background:#f1f5f9; border-bottom:1px solid #e2e8f0;
+  }
+  .resource-financials .item .lbl { font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px; }
+  .resource-financials .item .val { font-size:14px; font-weight:700; color:#0f172a; }
+  .resource-financials .item .val.pos { color:#10b981; }
+  .resource-financials .item .val.neg { color:#dc2626; }
+  .periods-list { padding:12px 18px 14px; }
+  .periods-list .periods-header {
+    display:grid; grid-template-columns: 1fr 1fr 1fr 40px; gap:12px;
+    font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;
+    padding:4px 0 8px; border-bottom:1px solid #f1f5f9;
+  }
+  .period-row {
+    display:grid; grid-template-columns: 1fr 1fr 1fr 40px; gap:12px;
+    align-items:center; padding:8px 0; border-bottom:1px solid #f1f5f9;
+  }
+  .period-row:last-child { border-bottom:none; }
+  .period-row input {
+    width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px;
+    font-size:13px; color:#0f172a; background:#fff; font-family:inherit; outline:none;
+  }
+  .period-row input:focus { border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,0.1); }
+  .add-period-btn {
+    margin-top:10px; display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+    border:1.5px dashed #cbd5e1; border-radius:6px; background:transparent;
+    color:#2563eb; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .add-period-btn:hover { border-color:#2563eb; background:#eff6ff; }
+  .delete-btn { background:none; border:none; cursor:pointer; padding:6px; color:#94a3b8; border-radius:4px; transition: all 0.12s; }
+  .delete-btn:hover { color:#dc2626; background:#fef2f2; }
+
+  .add-resource {
+    margin-top:16px; display:inline-flex; align-items:center; gap:8px; padding:10px 16px;
+    border:1.5px dashed #cbd5e1; border-radius:8px; background:transparent;
+    color:#2563eb; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+    transition: all 0.12s;
+  }
+  .add-resource:hover { border-color:#2563eb; background:#eff6ff; }
+
+  .totals {
+    margin-top:20px; padding:16px 20px; background:#f8fafc; border:1px solid #e2e8f0;
+    border-radius:8px; display:grid; grid-template-columns:repeat(6,1fr); gap:20px;
+  }
+  .totals .item .lbl { font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; font-weight:600; margin-bottom:4px; }
+  .totals .item .val { font-size:18px; font-weight:700; color:#0f172a; }
+  .totals .item .val.pos { color:#10b981; }
+  .totals .item .val.neg { color:#dc2626; }
+
+  /* Spreadsheet-style table for Resource Plan (Step 2) */
+  .spreadsheet { width:100%; border-collapse:collapse; font-size:12px; }
+  .spreadsheet th, .spreadsheet td {
+    border:1px solid #cbd5e1; padding:0; vertical-align:middle; height:34px;
+  }
+  .spreadsheet thead th {
+    background:#e2e8f0; color:#475569; font-weight:600; font-size:10px;
+    text-transform:uppercase; letter-spacing:0.04em; padding:8px 8px; text-align:left;
+    user-select:none; white-space:nowrap;
+  }
+  .spreadsheet thead th.ss-corner { background:#cbd5e1; }
+  .spreadsheet thead th.ss-internal-header { background:#fef3c7; color:#92400e; }
+  .spreadsheet tbody td.ss-row-num {
+    background:#e2e8f0; color:#475569; font-weight:600; font-size:11px;
+    text-align:center; user-select:none;
+  }
+  .spreadsheet tbody td.ss-cell { padding:0; background:#fff; }
+  .spreadsheet tbody td.ss-cell:hover { background:#eff6ff; }
+  .spreadsheet tbody td.ss-cell select,
+  .spreadsheet tbody td.ss-cell input {
+    width:100%; height:100%; min-height:34px; padding:0 10px;
+    border:none; background:transparent; font-family:inherit; font-size:12px;
+    color:#0f172a; outline:none; box-sizing:border-box;
+  }
+  .spreadsheet tbody td.ss-cell select { cursor:pointer;
+    -webkit-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%2394a3b8' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat:no-repeat; background-position:right 8px center;
+    padding-right:22px;
+  }
+  .spreadsheet tbody td.ss-cell input[type="number"] {
+    text-align:right; padding-right:10px;
+  }
+  /* Hide native spinners — we use custom +/− buttons for Allocation */
+  .spreadsheet tbody td.ss-cell input[type="number"]::-webkit-inner-spin-button,
+  .spreadsheet tbody td.ss-cell input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance:none; margin:0;
+  }
+  .spreadsheet tbody td.ss-cell input[type="number"] {
+    -moz-appearance:textfield;
+  }
+  .spreadsheet tbody td.ss-cell select:focus,
+  .spreadsheet tbody td.ss-cell input:focus {
+    background-color:#eff6ff; box-shadow:inset 0 0 0 2px #2563eb;
+  }
+  .spreadsheet tbody td.ss-computed {
+    background:#f8fafc; color:#0f172a; padding:0 10px; text-align:right;
+    font-weight:600; font-variant-numeric:tabular-nums;
+  }
+  .spreadsheet tbody td.ss-internal { background:#fffbeb; }
+  .spreadsheet tbody td.ss-internal.ss-cell:hover { background:#fef3c7; }
+  .spreadsheet tbody td.ss-action { text-align:center; background:#f8fafc; }
+  .spreadsheet tbody tr:hover td.ss-row-num { background:#cbd5e1; color:#0f172a; }
+  .spreadsheet td.margin-good { color:#059669; }
+  .spreadsheet td.margin-warn { color:#dc2626; }
+
+  /* Invoicing plan (Step 3) */
+  .row3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .sow-summary { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px 16px; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .sow-summary .lbl { font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px; }
+  .sow-summary .val { font-size:14px; font-weight:600; color:#0f172a; }
+  .schedule-table { width:100%; border-collapse:separate; border-spacing:0; }
+  .schedule-table th { text-align:left; padding:12px 14px; font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; background:#f8fafc; border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; }
+  .schedule-table th:first-child { border-left:1px solid #e2e8f0; border-top-left-radius:8px; }
+  .schedule-table th:last-child { border-right:1px solid #e2e8f0; border-top-right-radius:8px; }
+  .schedule-table td { padding:12px 14px; border-bottom:1px solid #f1f5f9; font-size:13px; vertical-align:middle; }
+  .schedule-table td:first-child { border-left:1px solid #e2e8f0; }
+  .schedule-table td:last-child { border-right:1px solid #e2e8f0; }
+  .schedule-table tr:last-child td { border-bottom:1px solid #e2e8f0; }
+  .schedule-table tr:last-child td:first-child { border-bottom-left-radius:8px; }
+  .schedule-table tr:last-child td:last-child { border-bottom-right-radius:8px; }
+  .schedule-table input { width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; outline:none; font-family:inherit; }
+  .schedule-table .num-cell { text-align:right; font-variant-numeric:tabular-nums; }
+  .schedule-table .total-row td { background:#f8fafc; font-weight:700; }
+  .add-milestone-btn { margin-top:12px; display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1.5px dashed #cbd5e1; border-radius:8px; background:transparent; color:#2563eb; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .add-milestone-btn:hover { border-color:#2563eb; background:#eff6ff; }
+  .summary-strip { margin-top:20px; padding:16px 20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
+  .summary-strip .item .lbl { font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; font-weight:600; margin-bottom:4px; }
+  .summary-strip .item .val { font-size:18px; font-weight:700; color:#0f172a; }
+  .summary-strip .item .val.match { color:#10b981; }
+  .summary-strip .item .val.mismatch { color:#dc2626; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .pill-lean { background:#ecfdf5; color:#059669; }
+  .pill-elab { background:#eff6ff; color:#2563eb; }
+  .pill-fixed { background:#fef3c7; color:#b45309; }
+  .pill-hybrid { background:#f3e8ff; color:#7e22ce; }
+
+  /* Margin warning banner */
+  .margin-warning {
+    margin-top:16px; padding:14px 18px; border-radius:10px;
+    background:#fef2f2; border:1px solid #fecaca; display:none; align-items:flex-start; gap:12px;
+  }
+  .margin-warning.show { display:flex; }
+  .margin-warning .icon { width:32px; height:32px; border-radius:8px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .margin-warning .content { flex:1; }
+  .margin-warning .title { font-size:13px; font-weight:600; color:#991b1b; margin:0 0 2px 0; }
+  .margin-warning .body { font-size:12px; color:#7f1d1d; margin:0; line-height:1.5; }
+
+  /* SOW Document layout */
+  .sow-doc { font-family: 'Inter', sans-serif; color:#0f172a; line-height:1.6; padding:32px 40px; background:#fff; }
+  .sow-header { display:flex; justify-content:flex-end; margin-bottom:24px; }
+  .sow-logo { font-size:18px; font-weight:700; color:#2563eb; letter-spacing:-0.02em; }
+  .sow-title { font-size:22px; font-weight:700; text-align:center; margin:0 0 24px 0; color:#0f172a; }
+  .sow-preamble { font-size:13px; color:#0f172a; margin:0 0 14px 0; line-height:1.55; }
+  .sow-table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  .sow-table th, .sow-table td { border:1px solid #94a3b8; padding:10px 12px; vertical-align:top; }
+  .sow-table thead th { background:#f1f5f9; text-align:center; font-weight:700; font-size:14px; }
+  .sow-table .sow-label { width:200px; font-weight:700; background:#f8fafc; }
+  .sow-table p { margin:0 0 10px 0; }
+  .sow-table p:last-child { margin-bottom:0; }
+  .sow-table ul, .sow-table ol { margin:6px 0 6px 20px; padding:0; }
+  .sow-table li { margin-bottom:4px; }
+  .sow-resource-table { width:100%; border-collapse:collapse; margin:8px 0 12px 0; font-size:12px; }
+  .sow-resource-table th, .sow-resource-table td { border:1px solid #94a3b8; padding:6px 10px; }
+  .sow-resource-table th { background:#f1f5f9; font-weight:600; text-align:left; }
+  .sow-signature td { padding:16px 20px; }
+  .sow-signature p { margin:0 0 4px 0; }
+  .sow-doc .editable { background:#fef9c3; padding:1px 4px; border-radius:3px; cursor:text; }
+  .sow-doc .placeholder { color:#94a3b8; font-style:italic; }
+
+  /* Signature field edit pattern (pencil icon → input) */
+  .sig-value { font-weight:500; color:#0f172a; padding:1px 2px; }
+  .sig-edit-btn {
+    background:none; border:none; cursor:pointer; color:#94a3b8;
+    padding:2px 4px; border-radius:3px; margin-left:4px; vertical-align:middle;
+    transition: all 0.12s;
+  }
+  .sig-edit-btn:hover { color:#2563eb; background:#eff6ff; }
+  .sig-input {
+    padding:3px 8px; border:1px solid #2563eb; border-radius:4px;
+    font-size:inherit; font-family:inherit; outline:none;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.12);
+    min-width:220px;
+  }
+
+  /* Print styles */
+  @media print {
+    body * { visibility:hidden; }
+    .sow-doc, .sow-doc * { visibility:visible; }
+    .sow-doc { position:absolute; left:0; top:0; width:100%; }
+  }
+
+  /* Buttons */
+  .actions { display:flex; justify-content:space-between; align-items:center; margin-top:24px; }
+  .btn { padding:10px 18px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid transparent; font-family:inherit; display:inline-flex; align-items:center; gap:8px; }
+  .btn-secondary { background:#fff; color:#475569; border-color:#cbd5e1; }
+  .btn-secondary:hover { background:#f8fafc; }
+  .btn-primary { background:#2563eb; color:#fff; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-success { background:#10b981; color:#fff; font-weight:600; }
+  .btn-success:hover { background:#059669; }
+
+  /* Toast */
+  .toast {
+    position:fixed; top:20px; right:20px; background:#0f172a; color:#fff;
+    padding:12px 16px; border-radius:8px; font-size:13px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15); display:flex; align-items:center; gap:10px;
+    opacity:0; transform:translateY(-8px); transition: all 0.2s; pointer-events:none; z-index:100;
+  }
+  .toast.show { opacity:1; transform:translateY(0); }
+  .toast.success { background:#10b981; }
+  .toast.error { background:#dc2626; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo-mark">C</div>
+  <div class="logo-text">Project Clarity</div>
+  <div style="margin-left:auto;font-size:12px;color:#64748b;">Avnish Ozarkar</div>
+</header>
+
+<div class="page">
+
+  <!-- ============ STEPPER ============ -->
+  <div class="stepper-wrap">
+    <div class="stepper">
+      <div class="step-col" data-step="1" onclick="goToStep(1)">
+        <div class="step-circle">
+          <span class="num">1</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">Create SOW</div>
+      </div>
+
+      <div class="step-line" id="line1"></div>
+
+      <div class="step-col" data-step="2" onclick="goToStep(2)">
+        <div class="step-circle">
+          <span class="num">2</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">Create Resource Plan</div>
+      </div>
+
+      <div class="step-line" id="line2"></div>
+
+      <div class="step-col" data-step="3" onclick="goToStep(3)">
+        <div class="step-circle">
+          <span class="num">3</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">Invoicing Plan</div>
+      </div>
+
+      <div class="step-line" id="line3"></div>
+
+      <div class="step-col" data-step="4" onclick="goToStep(4)">
+        <div class="step-circle">
+          <span class="num">4</span>
+          <svg class="check" style="width:22px;height:22px;display:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div class="step-label">Review &amp; Submit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 1: CREATE SOW (customer/project + speed it up) ============ -->
+  <div class="step-content" data-step="1">
+    <h1 class="step-title">Create SOW</h1>
+    <p class="step-sub">Enter project details and choose how to start the SOW.</p>
+
+    <!-- Customer & Project fields -->
+    <div class="panel">
+      <h2 style="font-size:15px;font-weight:600;color:#0f172a;margin:0 0 4px 0;">Customer and Project</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 16px 0;">Basic information about this engagement.</p>
+
+      <div class="row">
+        <div class="field">
+          <label>Customer<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <select id="customer" onchange="onCustomerChange()">
+            <option value="">Select a customer…</option>
+            <option value="surveymonkey">SurveyMonkey</option>
+            <option value="workato">Workato</option>
+            <option value="acme">Acme Corp</option>
+            <option value="globex">Globex</option>
+            <option value="initech">Initech</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Opportunity<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <select id="opportunity" disabled>
+            <option value="">Select customer first…</option>
+          </select>
+          <div class="help">Pulled from JobDiva pipeline.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Project name<span style="color:#dc2626;margin-left:2px;">*</span></label>
+        <input type="text" id="projectName" placeholder="e.g. Data platform Q2 build-out"/>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Start date<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <input type="date" id="startDate" onchange="onStartDateChange()"/>
+          <div class="help">Must be today or later.</div>
+        </div>
+        <div class="field">
+          <label>End date<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <input type="date" id="endDate"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Project description<span style="color:#dc2626;margin-left:2px;">*</span></label>
+        <textarea id="description" placeholder="Describe the engagement, scope, and key deliverables…" oninput="document.getElementById('descCount').textContent = this.value.length;"></textarea>
+        <div class="help"><span id="descCount">0</span> / 500 characters</div>
+      </div>
+    </div>
+
+    <!-- Speed it up: two stacked options -->
+    <div class="panel" style="margin-top:18px;">
+      <h2 style="font-size:15px;font-weight:600;color:#0f172a;margin:0 0 4px 0;">Speed it up</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 16px 0;">Pick a starting point — clone a previous SOW, or start from a billing template.</p>
+
+      <!-- Start from a previous SOW -->
+      <div class="reuse-box">
+        <div class="icon">
+          <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+        </div>
+        <span class="label">Speed it up — Start from a completed and active SOW</span>
+        <input id="priorSearch" type="text" placeholder="Search any SOW (active or completed)…" oninput="filterPrior(this.value)" onfocus="filterPrior(this.value)" onclick="event.stopPropagation();"/>
+        <div id="priorResults" class="reuse-results"></div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <!-- Start from a template -->
+      <div class="reuse-box">
+        <div class="icon" style="background:#dbeafe;color:#2563eb;">
+          <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <span class="label">Start from a template</span>
+        <select id="templateSelect" onchange="selectTemplate(this.value)" onclick="event.stopPropagation();" style="flex:0 0 240px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;background:#fff;">
+          <option value="">Select template…</option>
+          <option value="lean">Lean T&amp;M</option>
+          <option value="elaborate">Elaborate T&amp;M</option>
+          <option value="fixed">Fixed Fee</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
+      </div>
+
+      <div style="height:14px;"></div>
+
+      <!-- AI prompt box (Claude integration placeholder) -->
+      <div style="background:linear-gradient(135deg,#faf5ff 0%,#eff6ff 100%);border:1px dashed #c4b5fd;border-radius:10px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:32px;height:32px;border-radius:8px;background:#ede9fe;display:flex;align-items:center;justify-content:center;color:#7c3aed;flex-shrink:0;">
+            <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:#0f172a;">Or describe the change in plain English</div>
+            <div style="font-size:11px;color:#64748b;">AI will generate a new SOW based on your prompt and the selected template or previous SOW.</div>
+          </div>
+          <span style="font-size:10px;font-weight:600;background:#ede9fe;color:#7c3aed;padding:3px 8px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;">Powered by Claude</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input id="aiPrompt" type="text" placeholder='e.g. "Change resource name from Project Manager to Architect" or "Add 200 hours of QA work"' style="flex:1;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;outline:none;background:#fff;font-family:inherit;"/>
+          <button onclick="runAiPrompt()" style="padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+            <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Generate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div></div>
+      <button class="btn btn-primary" onclick="nextStep()">Continue
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ STEP 2: CREATE RESOURCE PLAN (full spreadsheet) ============ -->
+  <div class="step-content" data-step="2">
+    <h1 class="step-title">Create Resource Plan</h1>
+    <p class="step-sub">Spreadsheet view of the project team. Yellow columns are internal-only and never shown to the customer.</p>
+
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;margin-bottom:14px;font-size:12px;color:#92400e;">
+      <svg style="width:14px;height:14px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span style="flex:1;"><strong>Mock rate card.</strong> Bill Rate and FLC values are placeholders for demo purposes. In production, these auto-populate from DynPro's standard rate card and Finance's monthly FLC calculation.</span>
+      <button onclick="showRateCardModal()" style="background:#92400e;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">How are these calculated?</button>
+    </div>
+
+    <!-- Rate card calculation modal -->
+    <div id="rateCardModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:200;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px;" onclick="if(event.target===this)hideRateCardModal()">
+      <div style="background:#fff;border-radius:12px;max-width:780px;width:100%;padding:28px 32px;box-shadow:0 20px 48px rgba(0,0,0,0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <h2 style="margin:0;font-size:18px;font-weight:700;color:#0f172a;">How rate-card values are calculated</h2>
+          <button onclick="hideRateCardModal()" style="background:none;border:none;cursor:pointer;color:#64748b;padding:4px;">
+            <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p style="margin:0 0 20px 0;font-size:13px;color:#64748b;">All values shown below are mock numbers. In production, FLC comes from Finance's monthly calculation and Bill Rate comes from DynPro's standard rate card.</p>
+
+        <!-- FLC -->
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:10px;font-weight:700;background:#fde68a;color:#92400e;padding:3px 8px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;">Internal Only</span>
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#0f172a;">FLC Rate (Fully Loaded Cost)</h3>
+          </div>
+          <div style="font-size:13px;color:#0f172a;background:#fff;padding:10px 14px;border-radius:6px;border:1px solid #fde68a;font-family:ui-monospace,monospace;margin-bottom:14px;">
+            FLC per hour = Annual Total Cost ÷ Annual Billable Hours
+          </div>
+
+          <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;color:#0f172a;">Example: Data Architect, Onshore (US)</p>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:14px;">
+            <tr><td style="padding:5px 8px;color:#475569;">Base salary</td><td style="padding:5px 8px;text-align:right;font-variant-numeric:tabular-nums;">$120,000</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">Benefits (health, retirement, PTO)</td><td style="padding:5px 8px;text-align:right;">$22,000</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">Payroll taxes (employer portion)</td><td style="padding:5px 8px;text-align:right;">$11,000</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">Overhead allocation</td><td style="padding:5px 8px;text-align:right;">$18,000</td></tr>
+            <tr style="border-top:1px solid #fde68a;font-weight:700;"><td style="padding:6px 8px;">Annual Total Cost</td><td style="padding:6px 8px;text-align:right;">$171,000</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">÷ Annual Billable Hours</td><td style="padding:5px 8px;text-align:right;">1,900</td></tr>
+            <tr style="border-top:1px solid #fde68a;font-weight:700;color:#92400e;"><td style="padding:6px 8px;">FLC Rate</td><td style="padding:6px 8px;text-align:right;">$171,000 ÷ 1,900 = <strong>$90/hr</strong></td></tr>
+          </table>
+
+          <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;color:#0f172a;">Example: Data Architect, Offshore (India)</p>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <tr><td style="padding:5px 8px;color:#475569;">Base salary (USD-equivalent)</td><td style="padding:5px 8px;text-align:right;">$40,000</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">Benefits + payroll taxes</td><td style="padding:5px 8px;text-align:right;">$8,000</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">Overhead allocation</td><td style="padding:5px 8px;text-align:right;">$42,000</td></tr>
+            <tr style="border-top:1px solid #fde68a;font-weight:700;"><td style="padding:6px 8px;">Annual Total Cost</td><td style="padding:6px 8px;text-align:right;">$90,000</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">÷ Annual Billable Hours</td><td style="padding:5px 8px;text-align:right;">1,800</td></tr>
+            <tr style="border-top:1px solid #fde68a;font-weight:700;color:#92400e;"><td style="padding:6px 8px;">FLC Rate</td><td style="padding:6px 8px;text-align:right;">= $50/hr</td></tr>
+          </table>
+        </div>
+
+        <!-- Bill Rate -->
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 20px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:10px;font-weight:700;background:#bfdbfe;color:#1e40af;padding:3px 8px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;">Customer-facing</span>
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#0f172a;">Bill Rate</h3>
+          </div>
+          <div style="font-size:13px;color:#0f172a;background:#fff;padding:10px 14px;border-radius:6px;border:1px solid #bfdbfe;margin-bottom:10px;">
+            Bill Rate is <strong>not calculated</strong> by the spreadsheet — it's a manually-entered number, the price the customer agreed to pay per hour. Sales sets it deal-by-deal based on the customer-negotiated rate.
+          </div>
+          <p style="margin:0;font-size:11px;color:#475569;font-style:italic;">In production, Sales would set a default per customer (often pulled from the MSA), but the user can always edit it. The spreadsheet never auto-updates Bill Rate when role or location changes.</p>
+        </div>
+
+        <!-- Total Cost -->
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-top:16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:10px;font-weight:700;background:#fde68a;color:#92400e;padding:3px 8px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;">Internal Only</span>
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#0f172a;">Total Cost (per row in the spreadsheet)</h3>
+          </div>
+          <div style="font-size:13px;color:#0f172a;background:#fff;padding:10px 14px;border-radius:6px;border:1px solid #fde68a;font-family:ui-monospace,monospace;margin-bottom:14px;">
+            Total Cost = Total Hours × FLC Rate<br>
+            where Total Hours = Hrs/Week × Number of Weeks (from Start Date to End Date)
+          </div>
+
+          <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;color:#0f172a;">Example: Grant Holden — Data Architect, Onshore, 12 weeks</p>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <tr><td style="padding:5px 8px;color:#475569;">Hrs/Week</td><td style="padding:5px 8px;text-align:right;font-variant-numeric:tabular-nums;">40</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">× Number of Weeks (5/18 → 8/10)</td><td style="padding:5px 8px;text-align:right;">12</td></tr>
+            <tr style="border-top:1px solid #fde68a;font-weight:700;"><td style="padding:6px 8px;">Total Hours</td><td style="padding:6px 8px;text-align:right;">480</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">× FLC Rate</td><td style="padding:5px 8px;text-align:right;">$90/hr</td></tr>
+            <tr style="border-top:1px solid #fde68a;font-weight:700;color:#92400e;"><td style="padding:6px 8px;">Total Cost</td><td style="padding:6px 8px;text-align:right;">480 × $90 = <strong>$43,200</strong></td></tr>
+          </table>
+        </div>
+
+        <!-- Total Fees -->
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 20px;margin-top:16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:10px;font-weight:700;background:#bfdbfe;color:#1e40af;padding:3px 8px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;">Customer-facing</span>
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#0f172a;">Total Fees (per row in the spreadsheet)</h3>
+          </div>
+          <div style="font-size:13px;color:#0f172a;background:#fff;padding:10px 14px;border-radius:6px;border:1px solid #bfdbfe;font-family:ui-monospace,monospace;margin-bottom:14px;">
+            Total Fees = Total Hours × Bill Rate<br>
+            where Total Hours = Hrs/Week × Number of Weeks (from Start Date to End Date)
+          </div>
+
+          <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;color:#0f172a;">Example: Grant Holden — Data Architect, Onshore, 12 weeks</p>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:14px;">
+            <tr><td style="padding:5px 8px;color:#475569;">Hrs/Week</td><td style="padding:5px 8px;text-align:right;font-variant-numeric:tabular-nums;">40</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">× Number of Weeks</td><td style="padding:5px 8px;text-align:right;">12</td></tr>
+            <tr style="border-top:1px solid #bfdbfe;font-weight:700;"><td style="padding:6px 8px;">Total Hours</td><td style="padding:6px 8px;text-align:right;">480</td></tr>
+            <tr><td style="padding:5px 8px;color:#475569;">× Bill Rate</td><td style="padding:5px 8px;text-align:right;">$150/hr</td></tr>
+            <tr style="border-top:1px solid #bfdbfe;font-weight:700;color:#1e40af;"><td style="padding:6px 8px;">Total Fees</td><td style="padding:6px 8px;text-align:right;">480 × $150 = <strong>$72,000</strong></td></tr>
+          </table>
+
+          <p style="margin:0;font-size:11px;color:#475569;font-style:italic;">Once both Total Cost and Total Fees are known, Margin $ = Total Fees − Total Cost and Margin % = (Margin $ ÷ Total Fees) × 100. If overall Margin % drops below 40%, the SOW routes to SLT approval.</p>
+        </div>
+
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+          <button onclick="hideRateCardModal()" style="background:#2563eb;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="padding:0;overflow-x:auto;">
+      <table class="spreadsheet" style="table-layout:fixed;min-width:1430px;">
+        <colgroup>
+          <col style="width:36px;">
+          <col style="width:160px;">
+          <col style="width:130px;">
+          <col style="width:90px;">
+          <col style="width:120px;">
+          <col style="width:120px;">
+          <col style="width:100px;">
+          <col style="width:80px;">
+          <col style="width:80px;">
+          <col style="width:100px;">
+          <col style="width:80px;">
+          <col style="width:100px;">
+          <col style="width:100px;">
+          <col style="width:80px;">
+          <col style="width:50px;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="ss-corner"></th>
+            <th>Role</th>
+            <th>Resource Name</th>
+            <th>Location</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th style="text-align:right;">Allocation %</th>
+            <th style="text-align:center;">Bill Rate</th>
+            <th style="text-align:left;padding-left:2px;">Total Hours</th>
+            <th style="text-align:center;">Total Fees</th>
+            <th class="ss-internal-header" style="text-align:right;">FLC Rate</th>
+            <th class="ss-internal-header" style="text-align:right;">Total Cost</th>
+            <th class="ss-internal-header" style="text-align:right;">Margin $</th>
+            <th class="ss-internal-header" style="text-align:right;">Margin %</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="resourceSpreadsheetBody"></tbody>
+      </table>
+    </div>
+
+    <button class="add-resource" onclick="addResource()">
+      <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+      Add Row
+    </button>
+
+    <div class="totals">
+      <div class="item"><div class="lbl">Total Hours</div><div class="val" id="totHours">0</div></div>
+      <div class="item"><div class="lbl">Total Fees</div><div class="val" id="totFees">$0</div></div>
+      <div class="item"><div class="lbl">Total Cost</div><div class="val" id="totCost">$0</div></div>
+      <div class="item"><div class="lbl">Margin $</div><div class="val" id="totMargin">$0</div></div>
+      <div class="item"><div class="lbl">Margin %</div><div class="val" id="totMarginPct">0%</div></div>
+      <div class="item"><div class="lbl">Resources</div><div class="val" id="totResources">0</div></div>
+    </div>
+
+    <div class="margin-warning" id="marginWarning">
+      <div class="icon">
+        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <div class="content">
+        <p class="title">Margin below 40% — SLT approval required</p>
+        <p class="body">Operating margin is currently <strong id="warningMarginVal">—</strong>, below the 40% threshold. This SOW will route through the SLT approval chain: BU Head → CRO → Shiv. Consider adjusting bill rates or reducing offshore mix to bring margin above 40%.</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="prevStep()">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <button class="btn btn-primary" onclick="nextStep()">Continue
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ STEP 3: INVOICING PLAN ============ -->
+  <div class="step-content" data-step="3">
+    <h1 class="step-title">Invoicing Plan</h1>
+    <p class="step-sub">Set the cadence, payment terms, and customer billing details for this SOW.</p>
+
+    <!-- Section 1: SOW Summary (read-only) -->
+    <div class="panel">
+      <h2 style="font-size:15px;font-weight:600;color:#0f172a;margin:0 0 4px 0;">SOW Summary</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 12px 0;">Pulled from Step 1 and Step 2.</p>
+      <div class="sow-summary">
+        <div><div class="lbl">Customer</div><div class="val" id="invCustomer">—</div></div>
+        <div><div class="lbl">Billing Model</div><div class="val" id="invModel">—</div></div>
+        <div><div class="lbl">Contract Value</div><div class="val" id="invValue">$0</div></div>
+        <div><div class="lbl">SOW Period</div><div class="val" id="invPeriod">—</div></div>
+      </div>
+    </div>
+
+    <!-- Section 2: Cadence -->
+    <div class="panel">
+      <h2 style="font-size:15px;font-weight:600;color:#0f172a;margin:0 0 4px 0;">Cadence</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 16px 0;">When and how often invoices go out.</p>
+
+      <div class="field">
+        <label>Plan name<span style="color:#dc2626;margin-left:2px;">*</span></label>
+        <input type="text" id="planName" placeholder="e.g. SurveyMonkey — Monthly T&amp;M"/>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>Frequency<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <select id="frequency" onchange="onFrequencyChange()">
+            <option value="">Select frequency…</option>
+            <option value="monthly">Monthly</option>
+            <option value="biweekly">Bi-weekly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="milestone">Milestone-based</option>
+            <option value="completion">On completion</option>
+          </select>
+        </div>
+        <div class="field" id="dayOfMonthField" style="display:none;">
+          <label>Day of month</label>
+          <select id="dayOfMonth">
+            <option value="1">1st</option>
+            <option value="15">15th</option>
+            <option value="28">28th</option>
+            <option value="last">Last day of month</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>First invoice date<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <input type="date" id="firstInvoice"/>
+        </div>
+      </div>
+
+      <!-- Help note explaining the less obvious frequencies -->
+      <div style="margin-top:12px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;color:#1e40af;line-height:1.6;">
+        <div style="font-weight:600;margin-bottom:4px;">What these mean:</div>
+        <div><strong>Milestone-based</strong> — no regular schedule. An invoice goes out only when a specific milestone is completed and signed off (e.g. "Phase 1 design accepted"). Common for Fixed Fee or Hybrid SOWs where payment is tied to deliverables.</div>
+        <div style="margin-top:6px;"><strong>On completion</strong> — one single invoice at the very end of the project, after everything is delivered and accepted. Used only for short engagements or special customer agreements.</div>
+      </div>
+    </div>
+
+    <!-- Section 3: Payment Terms -->
+    <div class="panel">
+      <h2 style="font-size:15px;font-weight:600;color:#0f172a;margin:0 0 4px 0;">Payment Terms</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 16px 0;">How the customer pays and how long they have.</p>
+
+      <div class="row3">
+        <div class="field">
+          <label>Net terms<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <select id="netTerms">
+            <option value="15">Net 15</option>
+            <option value="30" selected>Net 30</option>
+            <option value="45">Net 45</option>
+            <option value="60">Net 60</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Payment method</label>
+          <select id="paymentMethod">
+            <option value="ach">Bank transfer (ACH)</option>
+            <option value="wire">Wire transfer</option>
+            <option value="check">Check</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Send method</label>
+          <select id="sendMethod">
+            <option value="email">Email</option>
+            <option value="portal">Customer portal</option>
+            <option value="docusign">DocuSign</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Late fee policy</label>
+        <input type="text" id="lateFee" placeholder="e.g. 1.5% per month after Net 30"/>
+        <div class="help">Optional. Leave blank if no late fee applies.</div>
+      </div>
+    </div>
+
+    <!-- Section 4: Customer Billing Details -->
+    <div class="panel">
+      <h2 style="font-size:15px;font-weight:600;color:#0f172a;margin:0 0 4px 0;">Customer Billing Details</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 16px 0;">Where invoices are sent and who receives them.</p>
+
+      <div class="row">
+        <div class="field">
+          <label>AP contact name<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <input type="text" id="apName" placeholder="e.g. Jane Doe"/>
+        </div>
+        <div class="field">
+          <label>AP contact email<span style="color:#dc2626;margin-left:2px;">*</span></label>
+          <input type="email" id="apEmail" placeholder="ap@customer.com"/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Customer PO number</label>
+          <input type="text" id="poNumber" placeholder="e.g. PO-12345"/>
+          <div class="help">Required by some customers on every invoice.</div>
+        </div>
+        <div class="field">
+          <label>Bill-to address</label>
+          <input type="text" id="billTo" placeholder="Street, City, State, ZIP"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Invoice Schedule Preview -->
+    <div class="panel">
+      <h2 style="font-size:15px;font-weight:600;color:#0f172a;margin:0 0 4px 0;">Invoice Schedule Preview</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 16px 0;" id="schedulePanelSub">Auto-generated from the cadence above.</p>
+      <table class="schedule-table">
+        <thead><tr id="scheduleHeader"></tr></thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+      <div id="addMilestoneWrap" style="display:none;">
+        <button class="add-milestone-btn" onclick="addMilestone()">
+          <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          Add milestone
+        </button>
+      </div>
+      <div class="summary-strip">
+        <div class="item"><div class="lbl">Number of Invoices</div><div class="val" id="totInvoices">0</div></div>
+        <div class="item"><div class="lbl">Total Scheduled</div><div class="val" id="totScheduled">$0</div></div>
+        <div class="item"><div class="lbl">Contract Value</div><div class="val" id="totContract">$0</div></div>
+        <div class="item"><div class="lbl">Match</div><div class="val" id="totMatch">—</div></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="prevStep()">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="saveDraft && saveDraft()">Save draft</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue
+          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 4: REVIEW & SUBMIT ============ -->
+  <div class="step-content" data-step="4">
+    <h1 class="step-title">Review &amp; Submit</h1>
+    <p class="step-sub">This is the actual SOW that will be sent to the customer for signature. Highlighted fields are auto-filled from your inputs. Click any of them to edit.</p>
+
+    <div class="panel" id="reviewPanel" style="padding:0;"></div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="prevStep()">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="window.print()">Download / Print
+          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        </button>
+        <button class="btn btn-success" onclick="submitSow()">Submit SOW
+          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // ============ DATA ============
+  const opportunitiesByCustomer = {
+    surveymonkey: [
+      { id: 'OPP-2041', name: 'Survey platform — Q2 expansion' },
+      { id: 'OPP-2058', name: 'Data warehouse migration' },
+    ],
+    workato:      [{ id: 'OPP-2065', name: 'Connector library refresh' }],
+    acme:         [
+      { id: 'OPP-2070', name: 'QA augmentation 2026' },
+      { id: 'OPP-2073', name: 'Mobile rebuild' },
+    ],
+    globex:       [{ id: 'OPP-2080', name: 'Data lake setup' }],
+    initech:      [{ id: 'OPP-2088', name: 'Migration phase 2' }],
+  };
+
+  const priorSows = [
+    { id: 'SOW-1031', customer: 'SurveyMonkey', value: '$340k', type: 'elaborate' },
+    { id: 'SOW-1029', customer: 'Workato',      value: '$210k', type: 'lean' },
+    { id: 'SOW-1024', customer: 'Acme Corp',    value: '$580k', type: 'fixed' },
+    { id: 'SOW-1018', customer: 'Globex',       value: '$185k', type: 'lean' },
+    { id: 'SOW-1011', customer: 'Initech',      value: '$420k', type: 'elaborate' },
+  ];
+
+  const currentSows = [
+    { id: 'SOW-1042', customer: 'SurveyMonkey', value: '$210k', type: 'elaborate', status: 'Active' },
+    { id: 'SOW-1041', customer: 'Workato',      value: '$95k',  type: 'lean',      status: 'Active' },
+    { id: 'SOW-1039', customer: 'Acme Corp',    value: '$320k', type: 'hybrid',    status: 'Active' },
+    { id: 'SOW-1036', customer: 'Globex',       value: '$145k', type: 'lean',      status: 'Active' },
+  ];
+
+  const customerLabels = { surveymonkey:'SurveyMonkey', workato:'Workato', acme:'Acme Corp', globex:'Globex', initech:'Initech' };
+  const typeLabels = { lean:'Lean T&M', elaborate:'Elaborate T&M', fixed:'Fixed Fee', hybrid:'Hybrid' };
+  const ROLES = ['Data Architect','Data Engineer','Project Manager','Software Engineer','QA Engineer','Business Analyst','Solution Architect'];
+
+  // Default weekly hours per role — drives auto-fill when role or dates change
+  const ROLE_WEEKLY_HOURS = {
+    'Data Architect':     40,
+    'Data Engineer':      40,
+    'Project Manager':    30,
+    'Software Engineer':  20,
+    'QA Engineer':        20,
+    'Business Analyst':   30,
+    'Solution Architect': 40,
+  };
+
+  // FLC Rate per role per location — drives auto-fill when role or location changes
+  // Values come from Finance's monthly FLC calculation (salary + benefits + overhead) ÷ billable hours
+  const ROLE_LOCATION_FLC = {
+    'Data Architect':     { Onshore: 90, Offshore: 50 },
+    'Data Engineer':      { Onshore: 85, Offshore: 40 },
+    'Project Manager':    { Onshore: 90, Offshore: 45 },
+    'Software Engineer':  { Onshore: 70, Offshore: 30 },
+    'QA Engineer':        { Onshore: 60, Offshore: 25 },
+    'Business Analyst':   { Onshore: 75, Offshore: 30 },
+    'Solution Architect': { Onshore: 110, Offshore: 55 },
+  };
+
+  // Bill Rate per role per location — pulled from DynPro's standard rate card
+  // (the price the customer is charged, before any negotiated discount)
+  const ROLE_LOCATION_BILL_RATE = {
+    'Data Architect':     { Onshore: 150, Offshore: 90 },
+    'Data Engineer':      { Onshore: 140, Offshore: 80 },
+    'Project Manager':    { Onshore: 145, Offshore: 80 },
+    'Software Engineer':  { Onshore: 130, Offshore: 75 },
+    'QA Engineer':        { Onshore: 110, Offshore: 60 },
+    'Business Analyst':   { Onshore: 125, Offshore: 70 },
+    'Solution Architect': { Onshore: 165, Offshore: 95 },
+  };
+
+  // ============ STATE ============
+  let currentStep = 1;
+  let selectedTemplate = null;
+  // Resources — flat structure. `hours` is HOURS PER WEEK. Total hours = hours × weeks(startDate, endDate).
+  let resources = [
+    { role: 'Data Architect',    name: 'Grant Holden', location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 40, rate: 150, flcRate: 90 },
+    { role: 'Software Engineer', name: 'Saurav Kumar', location: 'Offshore', startDate: '2026-05-18', endDate: '2026-08-10', hours: 20, rate: 75,  flcRate: 35 },
+    { role: 'Project Manager',   name: 'Cara Yost',    location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 30, rate: 145, flcRate: 90 },
+  ];
+
+  // ============ STEPPER ============
+  function renderStepper() {
+    document.querySelectorAll('.step-col').forEach(el => {
+      const n = parseInt(el.dataset.step);
+      el.classList.toggle('done', n < currentStep);
+      el.classList.toggle('active', n === currentStep);
+      const num = el.querySelector('.num');
+      const check = el.querySelector('.check');
+      if (n < currentStep) { num.style.display = 'none'; check.style.display = 'block'; }
+      else { num.style.display = 'inline'; check.style.display = 'none'; }
+    });
+    for (let i = 1; i <= 3; i++) {
+      const line = document.getElementById('line' + i);
+      if (line) line.classList.toggle('done', i < currentStep);
+    }
+    document.querySelectorAll('.step-content').forEach(el => {
+      el.classList.toggle('active', parseInt(el.dataset.step) === currentStep);
+    });
+  }
+
+  function nextStep() {
+    if (currentStep === 1) {
+      if (!selectedTemplate) { toast('Pick a template to continue.', 'error'); return; }
+      if (!validateCustomerProject()) return;
+    }
+    if (currentStep === 2 && resources.length === 0) { toast('Add at least one resource.', 'error'); return; }
+    if (currentStep < 4) {
+      currentStep++;
+      renderStepper();
+      if (currentStep === 3) onEnterStep3();
+      if (currentStep === 4) renderReview();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+  }
+  function prevStep() {
+    if (currentStep > 1) { currentStep--; renderStepper(); window.scrollTo({top:0, behavior:'smooth'}); }
+  }
+  function goToStep(n) {
+    if (n <= currentStep) {
+      currentStep = n;
+      renderStepper();
+      if (n === 3) onEnterStep3();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    else if (n === currentStep + 1) nextStep();
+    else toast('Complete the current step first.', 'error');
+  }
+
+  // ============ STEP 1: TEMPLATE ============
+  const templateColors = {
+    lean:      { bg: '#ecfdf5', border: '#059669', text: '#065f46' }, // green
+    elaborate: { bg: '#eff6ff', border: '#2563eb', text: '#1e40af' }, // blue
+    fixed:     { bg: '#fef3c7', border: '#b45309', text: '#92400e' }, // amber
+    hybrid:    { bg: '#f3e8ff', border: '#7e22ce', text: '#6b21a8' }, // purple
+  };
+
+  function selectTemplate(t) {
+    const sel = document.getElementById('templateSelect');
+    if (!t) {
+      selectedTemplate = null;
+      if (sel) {
+        sel.style.background = '#fff';
+        sel.style.borderColor = '#cbd5e1';
+        sel.style.color = '#0f172a';
+        sel.style.fontWeight = '400';
+      }
+      return;
+    }
+    selectedTemplate = t;
+    if (sel && sel.value !== t) sel.value = t;
+    if (sel && templateColors[t]) {
+      const c = templateColors[t];
+      sel.style.background = c.bg;
+      sel.style.borderColor = c.border;
+      sel.style.color = c.text;
+      sel.style.fontWeight = '600';
+    }
+  }
+
+  function resetCustomerProjectForm() {
+    document.getElementById('customer').value = '';
+    const opp = document.getElementById('opportunity');
+    opp.disabled = true;
+    opp.innerHTML = '<option value="">Select customer first…</option>';
+    document.getElementById('projectName').value = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('descCount').textContent = '0';
+  }
+
+  function filterPrior(q) {
+    const results = document.getElementById('priorResults');
+    const query = (q || '').toLowerCase().trim();
+    // Combine completed and in-progress SOWs in one list
+    const completed = priorSows.map(s => Object.assign({}, s, { status: 'Completed' }));
+    const active = currentSows.map(s => Object.assign({}, s, { status: 'Active' }));
+    const all = [...active, ...completed];
+    const matches = all.filter(s => s.id.toLowerCase().includes(query) || s.customer.toLowerCase().includes(query));
+    if (!matches.length) {
+      results.innerHTML = '<div class="reuse-item" style="color:#94a3b8;cursor:default;">No matches</div>';
+    } else {
+      results.innerHTML = matches.map(s => {
+        const badge = s.status === 'Active'
+          ? '<span style="font-size:10px;font-weight:600;background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;margin-left:8px;">Active</span>'
+          : '<span style="font-size:10px;font-weight:600;background:#f1f5f9;color:#64748b;padding:2px 6px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;margin-left:8px;">Completed</span>';
+        return `
+          <div class="reuse-item" onclick="pickPrior('${s.id}','${s.customer}','${s.type}','${s.value}'); event.stopPropagation();">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-weight:600;color:#0f172a;">${s.id} · ${s.customer}</span>
+              ${badge}
+            </div>
+            <div style="font-size:11px;color:#64748b;margin-top:2px;">${typeLabels[s.type]} · ${s.value}</div>
+          </div>`;
+      }).join('');
+    }
+    results.classList.add('show');
+  }
+  function showRateCardModal() {
+    const m = document.getElementById('rateCardModal');
+    if (m) m.style.display = 'flex';
+  }
+  function hideRateCardModal() {
+    const m = document.getElementById('rateCardModal');
+    if (m) m.style.display = 'none';
+  }
+
+  function runAiPrompt() {
+    const prompt = document.getElementById('aiPrompt').value.trim();
+    if (!prompt) { toast('Type a prompt first.', 'error'); return; }
+    toast('AI integration coming soon — Claude will generate the SOW from your prompt.', 'success');
+  }
+
+  function pickPrior(id, customer, type, value) {
+    document.getElementById('priorSearch').value = `${id} · ${customer}`;
+    document.getElementById('priorResults').classList.remove('show');
+    selectTemplate(type);
+    const slug = Object.keys(customerLabels).find(k => customerLabels[k] === customer);
+    if (slug) {
+      document.getElementById('customer').value = slug;
+      onCustomerChange();
+    }
+    document.getElementById('projectName').value = `${customer} — copy of ${id}`;
+    document.getElementById('description').value = `Copied from ${id} (${typeLabels[type]}, ${value}). Edit as needed.`;
+    document.getElementById('descCount').textContent = document.getElementById('description').value.length;
+    toast(`Copied details from ${id}.`, 'success');
+  }
+  document.addEventListener('click', () => {
+    const pr = document.getElementById('priorResults');
+    if (pr) pr.classList.remove('show');
+  });
+
+  function filterCurrent(q) {
+    const results = document.getElementById('currentResults');
+    const query = (q || '').toLowerCase().trim();
+    const matches = currentSows.filter(s => s.id.toLowerCase().includes(query) || s.customer.toLowerCase().includes(query));
+    if (!matches.length) {
+      results.innerHTML = '<div class="reuse-item" style="color:#94a3b8;cursor:default;">No matches</div>';
+    } else {
+      results.innerHTML = matches.map(s => `
+        <div class="reuse-item" onclick="pickCurrent('${s.id}','${s.customer}','${s.type}','${s.value}'); event.stopPropagation();">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-weight:600;color:#0f172a;">${s.id} · ${s.customer}</div>
+            <span style="font-size:10px;font-weight:600;background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.05em;">${s.status}</span>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px;">${typeLabels[s.type]} · ${s.value}</div>
+        </div>`).join('');
+    }
+    results.classList.add('show');
+  }
+  function pickCurrent(id, customer, type, value) {
+    document.getElementById('currentSearch').value = `${id} · ${customer}`;
+    document.getElementById('currentResults').classList.remove('show');
+    selectTemplate(type);
+    const slug = Object.keys(customerLabels).find(k => customerLabels[k] === customer);
+    if (slug) {
+      document.getElementById('customer').value = slug;
+      onCustomerChange();
+    }
+    document.getElementById('projectName').value = `${customer} — branched from ${id}`;
+    document.getElementById('description').value = `Branched from active SOW ${id} (${typeLabels[type]}, ${value}). Edit as needed.`;
+    document.getElementById('descCount').textContent = document.getElementById('description').value.length;
+    toast(`Branched from active SOW ${id}.`, 'success');
+  }
+
+  // ============ STEP 2: CUSTOMER ============
+  function onCustomerChange() {
+    const cust = document.getElementById('customer').value;
+    const opp = document.getElementById('opportunity');
+    opp.innerHTML = '<option value="">Select an opportunity…</option>';
+    if (!cust) { opp.disabled = true; opp.innerHTML = '<option value="">Select customer first…</option>'; return; }
+    opp.disabled = false;
+    (opportunitiesByCustomer[cust] || []).forEach(o => {
+      const el = document.createElement('option');
+      el.value = o.id; el.textContent = `${o.id} — ${o.name}`;
+      opp.appendChild(el);
+    });
+  }
+
+  function validateCustomerProject() {
+    const fields = ['customer','opportunity','projectName','startDate','endDate','description'];
+    for (const f of fields) {
+      const v = document.getElementById(f).value.trim();
+      if (!v) { toast('Please fill all required fields.', 'error'); document.getElementById(f).focus(); return false; }
+    }
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    if (end < start) { toast('End date must be after start date.', 'error'); return false; }
+    return true;
+  }
+
+  // Date constraints
+  function todayISO() {
+    const d = new Date();
+    const tz = d.getTimezoneOffset() * 60000;
+    return new Date(d - tz).toISOString().slice(0, 10);
+  }
+  function onStartDateChange() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate');
+    if (start) {
+      end.min = start;
+      if (end.value && end.value < start) {
+        end.value = '';
+        toast('End date cleared — must be on or after start date.', 'error');
+      }
+    }
+  }
+
+  // ============ STEP 2: RESOURCE PLAN SPREADSHEET ============
+  // r.hours is HOURS PER WEEK. Total hours = hours/week × weeks(startDate, endDate).
+  function weeksForResource(r) {
+    if (!r.startDate || !r.endDate) return 0;
+    const ms = new Date(r.endDate) - new Date(r.startDate);
+    return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24 * 7)));
+  }
+  function getResourceHours(r) {
+    const hrsPerWeek = +r.hours || 0;
+    const weeks = weeksForResource(r);
+    return hrsPerWeek * weeks;
+  }
+
+  function renderResources() {
+    const body = document.getElementById('resourceSpreadsheetBody');
+    if (!body) { updateTotals(); return; }
+    body.innerHTML = resources.map((r, i) => {
+      const hrsPerWeek = +r.hours || 0;
+      const weeks = weeksForResource(r);
+      const totalHours = hrsPerWeek * weeks;
+      const rate = +r.rate || 0;
+      const flcRate = +r.flcRate || 0;
+      const fees = totalHours * rate;
+      const cost = totalHours * flcRate;
+      const margin = fees - cost;
+      let marginPct = 0;
+      if (fees > 0) marginPct = (margin / fees) * 100;
+      else if (rate > 0) marginPct = ((rate - flcRate) / rate) * 100;
+      const marginCls = marginPct >= 40 ? 'margin-good' : 'margin-warn';
+      return `
+        <tr>
+          <td class="ss-row-num">${i + 1}</td>
+          <td class="ss-cell">
+            <select onchange="updateResource(${i}, 'role', this.value)">
+              ${ROLES.map(role => `<option ${role===r.role?'selected':''}>${role}</option>`).join('')}
+            </select>
+          </td>
+          <td class="ss-cell">
+            <select onchange="updateResource(${i}, 'name', this.value)">
+              <option value="TBD" ${(!r.name || r.name === 'TBD')?'selected':''}>TBD — Assign later</option>
+              ${MOCK_RESOURCE_NAMES.map(n => `<option value="${n}" ${r.name===n?'selected':''}>${n}</option>`).join('')}
+            </select>
+          </td>
+          <td class="ss-cell">
+            <select onchange="updateResource(${i}, 'location', this.value)">
+              <option ${r.location==='Onshore'?'selected':''}>Onshore</option>
+              <option ${r.location==='Offshore'?'selected':''}>Offshore</option>
+            </select>
+          </td>
+          <td class="ss-cell">
+            <input type="date" value="${r.startDate || ''}" onchange="updateResource(${i}, 'startDate', this.value)"/>
+          </td>
+          <td class="ss-cell">
+            <input type="date" min="${r.startDate || ''}" value="${r.endDate || ''}" onchange="updateResource(${i}, 'endDate', this.value)"/>
+          </td>
+          <td class="ss-cell" style="padding:0;">
+            <div style="display:flex;align-items:center;height:34px;">
+              <button type="button" onclick="adjustAllocation(${i}, -10)" style="width:24px;height:100%;border:none;background:#f1f5f9;color:#475569;cursor:pointer;font-size:14px;font-weight:600;line-height:1;border-right:1px solid #cbd5e1;" title="Decrease by 10%">−</button>
+              <input type="number" min="0" max="100" value="${(typeof r.allocationPct === 'number') ? r.allocationPct : Math.round((hrsPerWeek/40)*100)}" onchange="updateResourceAllocation(${i}, +this.value)" style="flex:1;width:100%;height:100%;border:none;background:transparent;text-align:center;font-family:inherit;font-size:12px;color:#0f172a;outline:none;padding:0;" title="Allocation %"/>
+              <button type="button" onclick="adjustAllocation(${i}, +10)" style="width:24px;height:100%;border:none;background:#f1f5f9;color:#475569;cursor:pointer;font-size:14px;font-weight:600;line-height:1;border-left:1px solid #cbd5e1;" title="Increase by 10%">+</button>
+            </div>
+          </td>
+          <td class="ss-cell">
+            <input type="number" min="0" value="${rate}" onchange="updateResource(${i}, 'rate', +this.value)" style="text-align:center;padding:0;"/>
+          </td>
+          <td class="ss-computed" style="text-align:center;padding:0;">${totalHours.toLocaleString()}</td>
+          <td class="ss-computed" style="text-align:center;padding:0;">$${fees.toLocaleString()}</td>
+          <td class="ss-computed ss-internal" style="color:#94a3b8;cursor:not-allowed;" title="FLC auto-set by role + location — not editable">$${flcRate}</td>
+          <td class="ss-computed ss-internal">$${cost.toLocaleString()}</td>
+          <td class="ss-computed ss-internal ${marginCls}">$${margin.toLocaleString()}</td>
+          <td class="ss-computed ss-internal ${marginCls}">${marginPct.toFixed(1)}%</td>
+          <td class="ss-action">
+            <button class="delete-btn" onclick="removeResource(${i})" title="Remove row">
+              <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+    updateTotals();
+  }
+
+  function defaultWeeklyHoursFor(r) {
+    return ROLE_WEEKLY_HOURS[r.role] || 40;
+  }
+
+  // Allocation helpers — r.allocationPct is the source of truth for the spreadsheet's display.
+  // r.hours is kept in sync as allocationPct × 40 / 100 (used by all financial calculations).
+  function adjustAllocation(i, delta) {
+    const r = resources[i];
+    if (typeof r.allocationPct !== 'number') {
+      r.allocationPct = Math.round((+r.hours || 0) / 40 * 100);
+    }
+    r.allocationPct = Math.max(0, Math.min(100, r.allocationPct + delta));
+    r.hours = (r.allocationPct / 100) * 40;
+    renderResources();
+  }
+  function updateResourceAllocation(i, pct) {
+    const r = resources[i];
+    r.allocationPct = Math.max(0, Math.min(100, +pct || 0));
+    r.hours = (r.allocationPct / 100) * 40;
+    renderResources();
+  }
+  function defaultFlcFor(r) {
+    const roleRates = ROLE_LOCATION_FLC[r.role];
+    if (!roleRates) return 60;
+    return roleRates[r.location] ?? 60;
+  }
+  function defaultBillRateFor(r) {
+    const roleRates = ROLE_LOCATION_BILL_RATE[r.role];
+    if (!roleRates) return 100;
+    return roleRates[r.location] ?? 100;
+  }
+  // Pool of mock resource names — also used as the dropdown options on Step 2
+  const MOCK_RESOURCE_NAMES = [
+    'Grant Holden', 'Saurav Kumar', 'Cara Yost',
+    'Aiden Patel', 'Maya Singh', 'Connor Reilly', 'Priya Sharma', 'Jordan Lee',
+    'Aisha Rahman', 'Marcus Chen', 'Riley Johnson', 'Devika Nair', 'Tyler Brooks',
+  ];
+  function nextMockName() {
+    const used = new Set(resources.map(r => r.name));
+    const free = MOCK_RESOURCE_NAMES.find(n => !used.has(n));
+    return free || MOCK_RESOURCE_NAMES[resources.length % MOCK_RESOURCE_NAMES.length];
+  }
+
+  function addResource() {
+    const role = 'Software Engineer';
+    const location = 'Onshore';
+    // Pull project dates from Step 1 so new rows match the SOW's date range
+    const projectStart = (document.getElementById('startDate') && document.getElementById('startDate').value) || '';
+    const projectEnd = (document.getElementById('endDate') && document.getElementById('endDate').value) || '';
+    resources.push({
+      role,
+      name: nextMockName(),
+      location,
+      startDate: projectStart,
+      endDate: projectEnd,
+      hours: ROLE_WEEKLY_HOURS[role] || 20,
+      rate: 100, // flat default — user enters the negotiated price manually
+      flcRate: defaultFlcFor({ role, location }),
+    });
+    renderResources();
+  }
+  function removeResource(i) { resources.splice(i, 1); renderResources(); }
+  function updateResource(i, field, val) {
+    if ((field === 'rate' || field === 'flcRate' || field === 'hours') && val < 0) val = 0;
+    const r = resources[i];
+    if (field === 'role') {
+      r.role = val;
+      // Snap weekly hours and FLC to the new role's standards. Bill Rate is NOT auto-updated —
+      // it stays as the user-entered value because that's the customer-negotiated price.
+      r.hours = defaultWeeklyHoursFor(r);
+      r.flcRate = defaultFlcFor(r);
+    } else if (field === 'location') {
+      r.location = val;
+      // FLC depends on location. Bill Rate is left as-is (manual entry only).
+      r.flcRate = defaultFlcFor(r);
+    } else if (field === 'startDate') {
+      r.startDate = val;
+      if (r.endDate && r.endDate < val) {
+        r.endDate = '';
+        toast('End date cleared — must be on or after start date.', 'error');
+      }
+    } else if (field === 'endDate') {
+      if (r.startDate && val < r.startDate) {
+        toast('End date must be on or after start date.', 'error');
+        renderResources();
+        return;
+      }
+      r.endDate = val;
+    } else {
+      r[field] = val;
+    }
+    renderResources();
+  }
+  // Stub to satisfy any older callers
+  function renderSimpleResources() { renderResources(); }
+
+  function updateTotals() {
+    const totHours = resources.reduce((s, r) => s + getResourceHours(r), 0);
+    const totFees = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.rate || 0)), 0);
+    const totCost = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.flcRate || 0)), 0);
+    const totMargin = totFees - totCost;
+    const totMarginPct = totFees > 0 ? (totMargin / totFees) * 100 : 0;
+    const cls = totMargin >= 0 ? 'pos' : 'neg';
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('totHours', totHours.toLocaleString());
+    set('totFees', '$' + totFees.toLocaleString());
+    set('totCost', '$' + totCost.toLocaleString());
+    const marginEl = document.getElementById('totMargin');
+    if (marginEl) { marginEl.textContent = '$' + totMargin.toLocaleString(); marginEl.className = 'val ' + cls; }
+    const marginPctEl = document.getElementById('totMarginPct');
+    if (marginPctEl) { marginPctEl.textContent = totMarginPct.toFixed(1) + '%'; marginPctEl.className = 'val ' + cls; }
+    set('totResources', resources.length);
+
+    const warning = document.getElementById('marginWarning');
+    if (warning) {
+      const showWarning = (totFees > 0 || totHours > 0) && totMarginPct < 40;
+      warning.classList.toggle('show', showWarning);
+      if (showWarning) {
+        const w = document.getElementById('warningMarginVal');
+        if (w) w.textContent = totMarginPct.toFixed(1) + '%';
+      }
+    }
+  }
+
+  // ============ STEP 3: INVOICING PLAN ============
+  const modelLabelsInv = { lean:'Lean T&M', elaborate:'Elaborate T&M', fixed:'Fixed Fee', hybrid:'Hybrid' };
+  const modelPillsInv = { lean:'pill-lean', elaborate:'pill-elab', fixed:'pill-fixed', hybrid:'pill-hybrid' };
+  let milestones = [];
+
+  function onEnterStep3() {
+    const customerSel = document.getElementById('customer');
+    const custKey = customerSel.value;
+    const custLabel = customerSel.options[customerSel.selectedIndex]?.text || '—';
+    const contractValue = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.rate || 0)), 0);
+    const projStart = document.getElementById('startDate').value;
+    const projEnd = document.getElementById('endDate').value;
+
+    document.getElementById('invCustomer').textContent = custLabel.startsWith('Select') ? '—' : custLabel;
+    const model = selectedTemplate || 'elaborate';
+    document.getElementById('invModel').innerHTML = `<span class="pill ${modelPillsInv[model]}">${modelLabelsInv[model]}</span>`;
+    document.getElementById('invValue').textContent = '$' + contractValue.toLocaleString();
+    document.getElementById('invPeriod').textContent = (projStart && projEnd) ? `${formatDate(projStart)} → ${formatDate(projEnd)}` : '—';
+
+    // Smart defaults
+    const planNameField = document.getElementById('planName');
+    if (!planNameField.value) planNameField.value = `${custLabel.split(' — ')[0] || 'Customer'} — ${modelLabelsInv[model]}`;
+    const firstField = document.getElementById('firstInvoice');
+    if (!firstField.value) firstField.value = projStart || '';
+    const emailField = document.getElementById('apEmail');
+    if (!emailField.value && custKey) emailField.value = `ap@${custKey}.com`;
+    const freqField = document.getElementById('frequency');
+    if (!freqField.value) {
+      freqField.value = (model === 'fixed' || model === 'hybrid') ? 'milestone' : 'monthly';
+      onFrequencyChange();
+    }
+
+    generateSchedule();
+  }
+
+  function onFrequencyChange() {
+    const freq = document.getElementById('frequency').value;
+    const dayField = document.getElementById('dayOfMonthField');
+    if (dayField) dayField.style.display = (freq === 'monthly') ? '' : 'none';
+    if (currentStep === 3) generateSchedule();
+  }
+
+  function freqLabel(f) {
+    return { monthly:'Monthly', biweekly:'Bi-weekly', quarterly:'Quarterly', milestone:'Milestone-based', completion:'On completion' }[f] || f;
+  }
+  function generatePeriods(startISO, endISO, freq) {
+    const periods = [];
+    let curStart = new Date(startISO);
+    const finalEnd = new Date(endISO);
+    const advance = (d) => {
+      const nd = new Date(d);
+      if (freq === 'monthly') nd.setMonth(nd.getMonth() + 1);
+      else if (freq === 'biweekly') nd.setDate(nd.getDate() + 14);
+      else if (freq === 'quarterly') nd.setMonth(nd.getMonth() + 3);
+      return nd;
+    };
+    while (curStart < finalEnd) {
+      let curEnd = advance(curStart);
+      if (curEnd > finalEnd) curEnd = finalEnd;
+      const sendDate = new Date(curEnd);
+      sendDate.setDate(sendDate.getDate() + 1);
+      periods.push({
+        from: curStart.toISOString().slice(0,10),
+        to: curEnd.toISOString().slice(0,10),
+        send: sendDate.toISOString().slice(0,10),
+      });
+      curStart = advance(curStart);
+    }
+    return periods;
+  }
+  function midpointDate(startISO, endISO, fraction) {
+    const s = new Date(startISO).getTime();
+    const e = new Date(endISO).getTime();
+    return new Date(s + (e - s) * fraction).toISOString().slice(0,10);
+  }
+
+  function generateSchedule() {
+    const freq = document.getElementById('frequency').value;
+    const contractValue = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.rate || 0)), 0);
+    const start = document.getElementById('firstInvoice').value || document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    const model = selectedTemplate || 'elaborate';
+
+    const sub = document.getElementById('schedulePanelSub');
+    if (sub) sub.textContent = `${modelLabelsInv[model]} · ${freqLabel(freq) || '—'} · ${start ? formatDate(start) : '—'} → ${end ? formatDate(end) : '—'}`;
+
+    const header = document.getElementById('scheduleHeader');
+    const body = document.getElementById('scheduleBody');
+    const addBtn = document.getElementById('addMilestoneWrap');
+    if (!header || !body) return;
+
+    if (!freq || !start || !end) {
+      header.innerHTML = '';
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:24px;">Fill in frequency and dates above to preview the schedule.</td></tr>`;
+      if (addBtn) addBtn.style.display = 'none';
+      updateInvSummary(0, 0, contractValue);
+      return;
+    }
+
+    if (freq === 'milestone' || freq === 'completion') {
+      header.innerHTML = `<th>#</th><th>Milestone</th><th>Due Date</th><th class="num-cell">Amount</th><th>Status</th><th></th>`;
+      if (addBtn) addBtn.style.display = 'block';
+      if (milestones.length === 0 && contractValue > 0) {
+        const split = Math.round(contractValue / 3);
+        const mid1 = midpointDate(start, end, 0.33);
+        const mid2 = midpointDate(start, end, 0.66);
+        milestones = [
+          { name: 'Kickoff and discovery complete', date: mid1, amount: split, status: 'Pending' },
+          { name: 'Mid-project deliverables accepted', date: mid2, amount: split, status: 'Pending' },
+          { name: 'Final acceptance and go-live', date: end, amount: contractValue - (2 * split), status: 'Pending' },
+        ];
+      }
+      renderMilestones(contractValue);
+    } else {
+      if (addBtn) addBtn.style.display = 'none';
+      milestones = [];
+      header.innerHTML = `<th>#</th><th>Invoice Period</th><th>Send Date</th><th class="num-cell">Estimated Amount</th><th>Status</th>`;
+      const periods = generatePeriods(start, end, freq);
+      const perPeriod = periods.length > 0 ? Math.round(contractValue / periods.length) : 0;
+      body.innerHTML = periods.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${formatDate(p.from)} → ${formatDate(p.to)}</td>
+          <td>${formatDate(p.send)}</td>
+          <td class="num-cell">$${perPeriod.toLocaleString()}</td>
+          <td><span class="pill" style="background:#f1f5f9;color:#64748b;">Pending</span></td>
+        </tr>
+      `).join('') + (periods.length > 0 ? `
+        <tr class="total-row">
+          <td colspan="3" style="text-align:right;">Total scheduled</td>
+          <td class="num-cell">$${(perPeriod * periods.length).toLocaleString()}</td>
+          <td></td>
+        </tr>
+      ` : '');
+      updateInvSummary(periods.length, perPeriod * periods.length, contractValue);
+    }
+  }
+
+  function renderMilestones(contractValue) {
+    const body = document.getElementById('scheduleBody');
+    if (!body) return;
+    body.innerHTML = milestones.map((m, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><input type="text" value="${m.name}" onchange="updateMilestone(${i}, 'name', this.value)"/></td>
+        <td><input type="date" value="${m.date}" onchange="updateMilestone(${i}, 'date', this.value)"/></td>
+        <td class="num-cell"><input type="number" min="0" value="${m.amount}" onchange="updateMilestone(${i}, 'amount', +this.value)" style="text-align:right;"/></td>
+        <td><span class="pill" style="background:#f1f5f9;color:#64748b;">${m.status}</span></td>
+        <td><button class="delete-btn" onclick="removeMilestone(${i})">
+          <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button></td>
+      </tr>
+    `).join('') + (milestones.length > 0 ? `
+      <tr class="total-row">
+        <td colspan="3" style="text-align:right;">Total scheduled</td>
+        <td class="num-cell">$${milestones.reduce((s,m) => s + (+m.amount || 0), 0).toLocaleString()}</td>
+        <td colspan="2"></td>
+      </tr>
+    ` : '');
+    const total = milestones.reduce((s,m) => s + (+m.amount || 0), 0);
+    updateInvSummary(milestones.length, total, contractValue);
+  }
+  function addMilestone() {
+    milestones.push({ name: 'New milestone', date: '', amount: 0, status: 'Pending' });
+    const contractValue = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.rate || 0)), 0);
+    renderMilestones(contractValue);
+  }
+  function removeMilestone(i) {
+    milestones.splice(i, 1);
+    const contractValue = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.rate || 0)), 0);
+    renderMilestones(contractValue);
+  }
+  function updateMilestone(i, field, val) {
+    milestones[i][field] = val;
+    const contractValue = resources.reduce((s, r) => s + (getResourceHours(r) * (+r.rate || 0)), 0);
+    renderMilestones(contractValue);
+  }
+
+  function updateInvSummary(count, totScheduled, contractValue) {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('totInvoices', count);
+    set('totScheduled', '$' + totScheduled.toLocaleString());
+    set('totContract', '$' + contractValue.toLocaleString());
+    const matchEl = document.getElementById('totMatch');
+    if (!matchEl) return;
+    if (totScheduled === contractValue && contractValue > 0) {
+      matchEl.textContent = '✓ Matches';
+      matchEl.className = 'val match';
+    } else if (contractValue === 0) {
+      matchEl.textContent = '—';
+      matchEl.className = 'val';
+    } else {
+      const diff = totScheduled - contractValue;
+      matchEl.textContent = (diff > 0 ? '+$' : '−$') + Math.abs(diff).toLocaleString();
+      matchEl.className = 'val mismatch';
+    }
+  }
+
+  // ============ DEAD CODE PRESERVED FOR LEGACY (no longer reachable) ============
+  function _legacy_renderResources_OLD() {
+    const body = document.getElementById('resourceBody');
+    body.innerHTML = resources.map((r, i) => {
+      const total = getResourceHours(r);
+      const rate = +r.rate || 0;
+      const flcRate = +r.flcRate || 0;
+      const fees = total * rate;
+      const cost = total * flcRate;
+      const margin = fees - cost;
+      // Margin %: use full margin when hours > 0, otherwise fall back to per-hour rate margin
+      let marginPct = 0;
+      if (fees > 0) marginPct = (margin / fees) * 100;
+      else if (rate > 0) marginPct = ((rate - flcRate) / rate) * 100;
+      // Margin $ display: show per-hour rate when hours = 0 so changes to rate/FLC are visible
+      const marginValDisplay = total > 0
+        ? `$${margin.toLocaleString()}`
+        : `$${(rate - flcRate).toLocaleString()}<span style="font-size:10px;font-weight:500;color:#64748b;"> / hr</span>`;
+      const marginClass = (total > 0 ? margin : (rate - flcRate)) >= 0 ? 'pos' : 'neg';
+      return `
+      <div class="resource-card">
+        <div class="resource-header">
+          <div>
+            <label>Role</label>
+            <select onchange="updateResource(${i}, 'role', this.value)">
+              ${ROLES.map(role => `<option ${role===r.role?'selected':''}>${role}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Resource Name</label>
+            <input type="text" placeholder="e.g. Sarah Chen" value="${r.name || ''}" onchange="updateResource(${i}, 'name', this.value)"/>
+          </div>
+          <div>
+            <label>Location</label>
+            <select onchange="updateResource(${i}, 'location', this.value)">
+              <option ${r.location==='Onshore'?'selected':''}>Onshore</option>
+              <option ${r.location==='Offshore'?'selected':''}>Offshore</option>
+            </select>
+          </div>
+          <div>
+            <label>Bill Rate ($/hr)</label>
+            <input type="number" min="0" value="${r.rate}" onchange="updateResource(${i}, 'rate', +this.value)"/>
+          </div>
+          <div>
+            <label>FLC Rate ($/hr)</label>
+            <input type="number" min="0" value="${r.flcRate || 0}" onchange="updateResource(${i}, 'flcRate', +this.value)"/>
+          </div>
+          <button class="delete-btn" onclick="removeResource(${i})" title="Delete resource">
+            <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+          </button>
+        </div>
+
+        <div class="resource-financials">
+          <div class="item"><div class="lbl">Total Hours</div><div class="val">${total.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Total Fees</div><div class="val">$${fees.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Total Cost</div><div class="val">$${cost.toLocaleString()}</div></div>
+          <div class="item"><div class="lbl">Margin $</div><div class="val ${marginClass}">${marginValDisplay}</div></div>
+          <div class="item"><div class="lbl">Margin %</div><div class="val ${marginClass}">${marginPct.toFixed(1)}%</div></div>
+        </div>
+
+        <div class="periods-list">
+          <div class="periods-header">
+            <div>Start Date</div>
+            <div>End Date</div>
+            <div>Hours</div>
+            <div></div>
+          </div>
+          ${(r.periods || []).map((p, pi) => `
+            <div class="period-row">
+              <input type="date" min="${todayISO()}" value="${p.startDate || ''}" onchange="updatePeriod(${i}, ${pi}, 'startDate', this.value)"/>
+              <input type="date" min="${p.startDate || todayISO()}" value="${p.endDate || ''}" onchange="updatePeriod(${i}, ${pi}, 'endDate', this.value)"/>
+              <input type="number" min="0" placeholder="0" value="${p.hours || ''}" onchange="updatePeriod(${i}, ${pi}, 'hours', +this.value)"/>
+              <button class="delete-btn" onclick="removePeriod(${i}, ${pi})" title="Delete period">
+                <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          `).join('')}
+          <button class="add-period-btn" onclick="addPeriod(${i})">
+            <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Add period
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+    updateTotals();
+  }
+
+  // ============ STEP 4: REVIEW (full SOW document) ============
+  const customerAddresses = {
+    surveymonkey: 'One Curiosity Way, San Mateo, CA 94403',
+    workato:      '595 Pacific Avenue, 4th Floor, San Francisco, CA 94133',
+    acme:         '350 5th Avenue, New York, NY 10118',
+    globex:       '450 California Street, San Francisco, CA 94104',
+    initech:      '200 W. Lake Street, Suite 100, Chicago, IL 60606',
+  };
+  const customerAbbrevs = {
+    surveymonkey: 'SurveyMonkey',
+    workato:      'Workato',
+    acme:         'Acme',
+    globex:       'Globex',
+    initech:      'Initech',
+  };
+  const customerMsaDates = {
+    surveymonkey: '02/02/2026',
+    workato:      '01/15/2026',
+    acme:         '12/01/2025',
+    globex:       '11/15/2025',
+    initech:      '10/01/2025',
+  };
+  const customerContacts = {
+    surveymonkey: 'contact@surveymonkey.com',
+    workato:      'contact@workato.com',
+    acme:         'contact@acme.com',
+    globex:       'contact@globex.com',
+    initech:      'contact@initech.com',
+  };
+
+  const sowTypeDetails = {
+    lean: {
+      areaOfExpertise: 'Application Development and Staff Augmentation',
+      deliverables: [
+        'Provide skilled resources to support customer initiatives on an hourly basis',
+        'Weekly status updates and capacity reporting',
+        'Knowledge transfer documentation upon completion',
+      ],
+      assumptions: [
+        'Customer to provide access to systems, tools, and key stakeholders',
+        'Resources will follow customer\'s standard development practices and tooling',
+        'Engagement may be extended or terminated with reasonable written notice',
+      ],
+    },
+    elaborate: {
+      areaOfExpertise: 'Integration and Automation',
+      deliverables: [
+        'Detailed project plan with milestones and deliverables',
+        'Phased technical implementation per agreed scope',
+        'Monthly status reports including risk and issue tracking',
+        'Knowledge transfer documentation and post-engagement support',
+        'Final acceptance review at end of engagement',
+      ],
+      assumptions: [
+        'Customer to provide timely access to systems, tools, and subject matter experts',
+        'Customer-side dependencies must be available per the agreed project plan',
+        'Scope changes will follow the Change Request process outlined in this SOW',
+        'Engagement is governed by the terms of the executed Master Service Agreement',
+      ],
+    },
+    fixed: {
+      areaOfExpertise: 'Project Delivery',
+      deliverables: [
+        'Defined scope deliverables per attached statement of work',
+        'Milestone-based payment schedule with clear acceptance criteria',
+        'Acceptance review and sign-off for each milestone deliverable',
+        'Final knowledge transfer and project documentation',
+      ],
+      assumptions: [
+        'Scope is fixed and frozen at SOW signing',
+        'Any scope changes require a signed Change Request and may impact pricing',
+        'Customer to provide test environment, sample data, and timely stakeholder access',
+        'Delivery timelines are subject to customer-side dependencies being met on schedule',
+      ],
+    },
+    hybrid: {
+      areaOfExpertise: 'Integration and Project Delivery',
+      deliverables: [
+        'Fixed-fee deliverables for defined scope items',
+        'Time-and-material support for ongoing or undefined work',
+        'Combined milestone plan with both billing models clearly identified',
+        'Monthly status reporting covering both fixed and T&M components',
+      ],
+      assumptions: [
+        'Fixed-fee and T&M components are clearly delineated in the project plan',
+        'Scope changes for fixed components follow the Change Request process',
+        'T&M work may be extended or reduced based on demand and capacity',
+        'Customer to provide ongoing access to required environments and stakeholders',
+      ],
+    },
+  };
+
+  const providerPOC = {
+    name: 'Andy Bhatnagar',
+    email: 'andy.bhatnagar@dynpro.com',
+    phone: '281-840-9255',
+  };
+
+  const customerSignatories = {
+    surveymonkey: { name: 'Sarah Chen',       title: 'VP of Operations' },
+    workato:      { name: 'Michael Patel',    title: 'Director of Procurement' },
+    acme:         { name: 'Jennifer Brooks',  title: 'Chief Operating Officer' },
+    globex:       { name: 'David Martinez',   title: 'Chief Technology Officer' },
+    initech:      { name: 'Robert Kim',       title: 'VP of Engineering' },
+  };
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${m}/${d}/${y}`;
+  }
+  function calculateWeeks(startISO, endISO) {
+    if (!startISO || !endISO) return 0;
+    const ms = new Date(endISO) - new Date(startISO);
+    return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24 * 7)));
+  }
+  function durationDisplay(startISO, endISO) {
+    if (!startISO || !endISO) return '1 week';
+    const ms = new Date(endISO) - new Date(startISO);
+    if (ms <= 0) return '1 day';
+    const days = Math.round(ms / (1000 * 60 * 60 * 24));
+    if (days < 7) return days === 1 ? '1 day' : `${days} days`;
+    const weeks = Math.round(days / 7);
+    return weeks === 1 ? '1 week' : `${weeks} weeks`;
+  }
+  function ph(val, placeholder) {
+    return val ? `<span class="editable">${val}</span>` : `<span class="placeholder">[${placeholder}]</span>`;
+  }
+
+  function sigField(label, value) {
+    const safe = String(value).replace(/"/g, '&quot;');
+    return `<p>${label}: <span class="sig-value">${value}</span><button class="sig-edit-btn" onclick="editSigField(this)" title="Edit ${label}">
+      <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    </button></p>`;
+  }
+
+  function editSigField(btn) {
+    const span = btn.previousElementSibling;
+    const original = span.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = original;
+    input.className = 'sig-input';
+    span.replaceWith(input);
+    btn.style.display = 'none';
+    input.focus();
+    input.select();
+
+    const save = () => {
+      const newSpan = document.createElement('span');
+      newSpan.className = 'sig-value';
+      newSpan.textContent = input.value || original;
+      input.replaceWith(newSpan);
+      btn.style.display = '';
+    };
+    input.addEventListener('blur', save, { once: true });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { input.value = original; input.blur(); }
+    });
+  }
+
+  function renderReview() {
+    const custKey = document.getElementById('customer').value;
+    const cust = customerLabels[custKey] || '';
+    const custAbbrev = customerAbbrevs[custKey] || cust || 'Customer';
+    const custAddress = customerAddresses[custKey] || '';
+    const oppSel = document.getElementById('opportunity');
+    const oppText = oppSel.options[oppSel.selectedIndex]?.text || '';
+    const opp = (oppText && !oppText.startsWith('Select')) ? oppText : '';
+    const name = document.getElementById('projectName').value;
+    const startRaw = document.getElementById('startDate').value;
+    const endRaw = document.getElementById('endDate').value;
+    const start = formatDate(startRaw);
+    const end = formatDate(endRaw);
+    const duration = calculateWeeks(startRaw, endRaw);
+    const desc = document.getElementById('description').value;
+    const effective = formatDate(todayISO());
+    const totRevenue = resources.reduce((s, r) => s + (getResourceHours(r) * r.rate), 0);
+    const msaDate = customerMsaDates[custKey] || '01/01/2026';
+    const customerEmail = customerContacts[custKey] || 'contact@customer.com';
+    const sowKey = selectedTemplate || 'elaborate';
+    const details = sowTypeDetails[sowKey];
+    const custSig = customerSignatories[custKey] || { name: 'Authorized Signatory', title: 'Authorized Signatory' };
+
+    document.getElementById('reviewPanel').innerHTML = `
+      <div class="sow-doc">
+        <div class="sow-header"><div class="sow-logo">DynPro</div></div>
+
+        <h1 class="sow-title">Statement of Work – ${ph(name, 'Project Name')}</h1>
+
+        <p class="sow-preamble">
+          THIS STATEMENT OF WORK ("SOW") is entered into as of ${ph(effective, 'Effective Date')} (the "Effective Date") by and between <strong>DynPro, Inc.</strong>, with its principal place of business at 8045 Arco Corporate Drive, Suite #370, Raleigh, NC 27617 ("Provider") and <strong>${ph(cust, 'Customer Name')}</strong>, ("${ph(custAbbrev, 'Abbrev')}") with its principal place of business at ${ph(custAddress, 'Customer Address')}.
+        </p>
+
+        <p class="sow-preamble">
+          This SOW is subject to and governed by the Master Service Agreement ("MSA") entered into by such parties having an Effective Date of <span class="editable">${msaDate}</span>.
+        </p>
+
+        <table class="sow-table">
+          <thead><tr><th colspan="2">Summary Information</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="sow-label">STATEMENT OF WORK</td>
+              <td>${ph(desc, 'Project description')}</td>
+            </tr>
+            <tr>
+              <td class="sow-label">SCOPE</td>
+              <td>
+                <p><strong>Technical Scope and Deliverables:</strong></p>
+                <ul>
+                  ${details.deliverables.map(d => `<li><span class="editable">${d}</span></li>`).join('')}
+                </ul>
+                <p><strong>Assumptions:</strong> Following assumptions apply to the project scope:</p>
+                <ul>
+                  ${details.assumptions.map(a => `<li><span class="editable">${a}</span></li>`).join('')}
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">NOT TO EXCEED CONTRACT VALUE</td>
+              <td>
+                <p>DynPro will provide following skilled resources, details below:</p>
+                <table class="sow-resource-table">
+                  <thead>
+                    <tr><th>Role</th><th>Location</th><th>Estimated Hours (hr.)</th></tr>
+                  </thead>
+                  <tbody>
+                    ${resources.map(r => `<tr>
+                      <td>${r.role}${r.name ? ` — <em>${r.name}</em>` : ''}</td>
+                      <td>${r.location}</td>
+                      <td>${getResourceHours(r).toLocaleString()}</td>
+                    </tr>`).join('')}
+                  </tbody>
+                </table>
+                <p><strong>Total Contract value: <span class="editable">USD $${totRevenue.toLocaleString()}.00</span></strong></p>
+                <p><strong>Note:</strong></p>
+                <ol>
+                  <li>DynPro shall issue invoices based on the actual hours worked. Invoices will be submitted at the beginning of each calendar month for services rendered during the preceding month.</li>
+                  <li>Travel and living expenses are not anticipated at this stage. If such expenses become necessary, prior written approval from ${custAbbrev || 'Customer'} will be required, and any approved expenses will be invoiced on a pass-through basis.</li>
+                </ol>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">SOW PERIOD</td>
+              <td>
+                <ul>
+                  <li>Start Date: ${ph(start, 'Start Date')}</li>
+                  <li>End Date: ${ph(end, 'End Date')}</li>
+                  <li>Duration: <span class="editable">${durationDisplay(startRaw, endRaw)}</span></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">PRIMARY WORK SITE</td>
+              <td>Remote</td>
+            </tr>
+            <tr>
+              <td class="sow-label">REPORTING</td>
+              <td>
+                A Monthly Status Report is to be delivered in MS Office Word/Excel. The report is to include Status, Issues, and Risk Communication to ensure ${custAbbrev || 'Customer'} is fully engaged with the latest developments and potential problems.
+                <br><br>
+                Report to be delivered via email to <span class="editable">${customerEmail}</span>.
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">ACCEPTANCE CRITERIA</td>
+              <td>Time frame for acceptance or rejection of deliverables is five (5) business days from receipt, after which the deliverable is assumed to be accepted.</td>
+            </tr>
+            <tr>
+              <td class="sow-label">AREA OF EXPERTISE</td>
+              <td><span class="editable">${details.areaOfExpertise}</span></td>
+            </tr>
+            <tr>
+              <td class="sow-label">PROVIDER POINT OF CONTACT</td>
+              <td><span class="editable">${providerPOC.name}</span>, <span class="editable">${providerPOC.email}</span> Cell No: <span class="editable">${providerPOC.phone}</span></td>
+            </tr>
+            <tr>
+              <td class="sow-label">PAYMENT</td>
+              <td>
+                <p>Notwithstanding anything else in the Agreement and this SOW to the contrary and unless otherwise agreed upon in writing by ${custAbbrev || 'Customer'}, the maximum funding liability under this SOW shall not exceed the "Not to Exceed" quote listed above.</p>
+                <p>Any delays in or to target completion date or changes to resource allocation per section "Resource provided by Provider" due to factors outside of DynPro's control listed in the Change Request clause may have an impact on the total contract value and associated Milestone payment listed above. In the event of such impact, Provider shall obtain ${custAbbrev || 'Customer'}'s prior approval before proceeding with the Services.</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">EXPENSES</td>
+              <td>The rate paid for consulting services is all inclusive. Travel expenses will not be reimbursed until prior approval is attained.</td>
+            </tr>
+            <tr>
+              <td class="sow-label">PLACE OF PERFORMANCE</td>
+              <td>Remote</td>
+            </tr>
+            <tr>
+              <td class="sow-label">CHANGE REQUEST PROCESS</td>
+              <td>
+                <p>It may become necessary to amend this SOW from time to time for reasons including, but not limited to, the following: i) Discretionary changes (as agreed by ${custAbbrev || 'Customer'}) in the scope of the Project; ii) Requested changes to the work hours of Provider personnel; iii) Non-availability of products, resources or services which are beyond Provider's control; or iv) Lack of access to personnel or facilities necessary to complete project. In the event that it is necessary to change this SOW, the following process will be followed: A Change Request (CR) will be the vehicle for communicating change. The CR must describe the change, reasons for the change, and the effect the change will have on the project, which may include scheduling changes, pricing, etc. A CR may be initiated by either ${custAbbrev || 'Customer'} or Provider. The designated Project Manager of the requesting party will review the proposed change and determine whether to submit the request to the other party. Both Project Managers will review the proposed change and approve it or reject it. If further investigation on the part of Provider is required in order to determine the scope of the change, any charges for that investigation will be outlined. Both Project Managers will sign the CR, indicating the acceptance of both parties to the changes, which may affect pricing, schedules, and contractual commitments.</p>
+                <p>Each party has the absolute right to cancel this SOW at any time for its convenience, but both agree to give fifteen (15) days' written notice to the other party of its election to terminate.</p>
+                <p>Upon termination, ${custAbbrev || 'Customer'} shall promptly pay Provider for all Services performed or expenses incurred or obligated prior to the effective date of termination.</p>
+                <p>Once this SOW is signed by the Provider, the resources designated for the SOW should join the project as stipulated. In the event that the candidate does not show up at the project or doesn't report after starting the project. The provider will be directly responsible for providing replacement.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="sow-table sow-signature">
+          <tbody>
+            <tr>
+              <td class="sow-label">STATEMENT OF WORK SIGNATURE</td>
+              <td>
+                <p><strong>${cust || 'Customer Name'}</strong></p>
+                ${sigField('Name', custSig.name)}
+                ${sigField('Title', custSig.title)}
+                ${sigField('Date', effective)}
+                ${sigField('Signature', '[Pending DocuSign signature]')}
+                <br>
+                <p><strong>DynPro Inc.</strong></p>
+                <p>Name: Sanjay K Jain</p>
+                <p>Title: CFO</p>
+                <p>Date: ${effective}</p>
+                <p>Signature: [Pending DocuSign signature]</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function submitSow() {
+    toast('SOW submitted for approval. Returning to home.', 'success');
+    // Reset wizard state
+    selectedTemplate = null;
+    const tplSel = document.getElementById('templateSelect');
+    if (tplSel) tplSel.value = '';
+    resetCustomerProjectForm();
+    resources = [
+      { role: 'Data Architect', name: '', location: 'Onshore',  rate: 150, flcRate: 90, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+      { role: 'Data Engineer',  name: '', location: 'Offshore', rate: 75,  flcRate: 35, periods: [{ startDate: '', endDate: '', hours: 0 }] },
+    ];
+    // Navigate back to Step 1
+    currentStep = 1;
+    renderStepper();
+    renderResources();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ============ TOAST ============
+  let tt;
+  function toast(msg, kind='info') {
+    const el = document.getElementById('toast');
+    el.className = `toast show ${kind}`;
+    el.innerHTML = `${
+      kind==='success' ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' :
+      kind==='error'   ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>' : ''
+    }<span>${msg}</span>`;
+    clearTimeout(tt);
+    tt = setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ============ INIT ============
+  const today = todayISO();
+  document.getElementById('startDate').min = today;
+  document.getElementById('endDate').min = today;
+
+  // ----- Pre-fill demo data so the wizard opens directly on Step 4 (SOW document) -----
+  // Step 1: Create SOW (template + customer/project fields)
+  selectedTemplate = 'elaborate';
+  document.getElementById('templateSelect').value = 'elaborate';
+
+  document.getElementById('customer').value = 'surveymonkey';
+  onCustomerChange();
+  document.getElementById('opportunity').value = 'OPP-2041';
+  document.getElementById('projectName').value = 'Survey Platform Q2 Expansion';
+  document.getElementById('startDate').value = '2026-05-18';
+  document.getElementById('endDate').value = '2026-08-10';
+  const demoDescription = 'Phase 1 build-out of the Survey Analytics platform: instrumentation, reporting pipeline, and three customer-facing dashboards. Includes integration with the existing data warehouse and rollout of new visualization templates.';
+  document.getElementById('description').value = demoDescription;
+  document.getElementById('descCount').textContent = demoDescription.length;
+
+  // Step 2: Resource Plan — `hours` is HOURS PER WEEK (multiplied by date-range weeks for totals)
+  resources = [
+    { role: 'Data Architect',    name: 'Grant Holden', location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 40, rate: 150, flcRate: 90 },
+    { role: 'Software Engineer', name: 'Saurav Kumar', location: 'Offshore', startDate: '2026-05-18', endDate: '2026-08-10', hours: 20, rate: 75,  flcRate: 35 },
+    { role: 'Project Manager',   name: 'Cara Yost',    location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 30, rate: 145, flcRate: 90 },
+  ];
+
+  // Land on Step 1 (Create SOW)
+  currentStep = 1;
+  renderStepper();
+  renderResources();
+  renderSimpleResources();
+</script>
+</body>
+</html>
