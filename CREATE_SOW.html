@@ -611,12 +611,13 @@
     </div>
 
     <div class="panel" style="padding:0;overflow-x:auto;">
-      <table class="spreadsheet" style="table-layout:fixed;min-width:1430px;">
+      <table class="spreadsheet" style="table-layout:fixed;min-width:1580px;">
         <colgroup>
           <col style="width:36px;">
           <col style="width:160px;">
           <col style="width:130px;">
           <col style="width:90px;">
+          <col style="width:130px;">
           <col style="width:120px;">
           <col style="width:120px;">
           <col style="width:100px;">
@@ -625,8 +626,8 @@
           <col style="width:100px;">
           <col style="width:80px;">
           <col style="width:100px;">
+          <col style="width:120px;">
           <col style="width:100px;">
-          <col style="width:80px;">
           <col style="width:50px;">
         </colgroup>
         <thead>
@@ -635,6 +636,7 @@
             <th>Role</th>
             <th>Resource Name</th>
             <th>Location</th>
+            <th>Holiday Calendar</th>
             <th>Start Date</th>
             <th>End Date</th>
             <th style="text-align:right;">Allocation %</th>
@@ -643,8 +645,8 @@
             <th style="text-align:center;">Total Fees</th>
             <th class="ss-internal-header" style="text-align:right;">FLC Rate</th>
             <th class="ss-internal-header" style="text-align:right;">Total Cost</th>
-            <th class="ss-internal-header" style="text-align:right;">Margin $</th>
-            <th class="ss-internal-header" style="text-align:right;">Margin %</th>
+            <th class="ss-internal-header" style="text-align:right;">Operating Margin $</th>
+            <th class="ss-internal-header" style="text-align:right;">Operating Margin %</th>
             <th></th>
           </tr>
         </thead>
@@ -658,12 +660,12 @@
     </button>
 
     <div class="totals">
+      <div class="item"><div class="lbl">Total Resources</div><div class="val" id="totResources">0</div></div>
       <div class="item"><div class="lbl">Total Hours</div><div class="val" id="totHours">0</div></div>
       <div class="item"><div class="lbl">Total Fees</div><div class="val" id="totFees">$0</div></div>
       <div class="item"><div class="lbl">Total Cost</div><div class="val" id="totCost">$0</div></div>
-      <div class="item"><div class="lbl">Margin $</div><div class="val" id="totMargin">$0</div></div>
-      <div class="item"><div class="lbl">Margin %</div><div class="val" id="totMarginPct">0%</div></div>
-      <div class="item"><div class="lbl">Resources</div><div class="val" id="totResources">0</div></div>
+      <div class="item"><div class="lbl">Operating Margin $</div><div class="val" id="totMargin">$0</div></div>
+      <div class="item"><div class="lbl">Operating Margin %</div><div class="val" id="totMarginPct">0%</div></div>
     </div>
 
     <div class="margin-warning" id="marginWarning">
@@ -878,6 +880,26 @@
 
 <div id="toast" class="toast"></div>
 
+<!-- Holiday picker modal -->
+<div id="holidayModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:200;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px;" onclick="if(event.target===this)closeHolidayPicker()">
+  <div style="background:#fff;border-radius:12px;max-width:480px;width:100%;padding:24px 28px;box-shadow:0 20px 48px rgba(0,0,0,0.2);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+      <div>
+        <h2 id="holidayModalTitle" style="margin:0;font-size:17px;font-weight:700;color:#0f172a;">Holiday Calendar</h2>
+        <p id="holidayModalSubtitle" style="margin:4px 0 0 0;font-size:12px;color:#64748b;">Check the holidays this resource is off — hours will be subtracted automatically.</p>
+      </div>
+      <button onclick="closeHolidayPicker()" style="background:none;border:none;cursor:pointer;color:#64748b;padding:4px;">
+        <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="holidayModalList" style="margin-top:14px;max-height:380px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;"></div>
+    <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:11px;color:#64748b;">Each checked holiday = 8 hrs × (Allocation%) deducted from Total Hours.</div>
+      <button onclick="closeHolidayPicker()" style="background:#2563eb;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Done</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ============ DATA ============
   const opportunitiesByCustomer = {
@@ -951,11 +973,49 @@
   // ============ STATE ============
   let currentStep = 1;
   let selectedTemplate = null;
+
+  // Holiday calendars per location — drives the Holiday Calendar column in Step 2.
+  // Each checked holiday reduces that resource's total hours by 8 × (allocation/100).
+  const HOLIDAY_CALENDARS = {
+    Onshore: {
+      label: 'US Holiday Calendar',
+      holidays: [
+        { date: '2026-01-01', name: "New Year's Day" },
+        { date: '2026-01-19', name: 'Martin Luther King Jr. Day' },
+        { date: '2026-02-16', name: "Presidents' Day" },
+        { date: '2026-05-25', name: 'Memorial Day' },
+        { date: '2026-06-19', name: 'Juneteenth' },
+        { date: '2026-07-03', name: 'Independence Day (observed)' },
+        { date: '2026-09-07', name: 'Labor Day' },
+        { date: '2026-11-11', name: 'Veterans Day' },
+        { date: '2026-11-26', name: 'Thanksgiving Day' },
+        { date: '2026-11-27', name: 'Day after Thanksgiving' },
+        { date: '2026-12-25', name: 'Christmas Day' },
+      ],
+    },
+    Offshore: {
+      label: 'India Holiday Calendar',
+      holidays: [
+        { date: '2026-01-01', name: "New Year's Day" },
+        { date: '2026-01-26', name: 'Republic Day' },
+        { date: '2026-03-05', name: 'Holi' },
+        { date: '2026-04-14', name: 'Ambedkar Jayanti' },
+        { date: '2026-05-01', name: 'Labour Day' },
+        { date: '2026-08-15', name: 'Independence Day' },
+        { date: '2026-10-02', name: 'Gandhi Jayanti' },
+        { date: '2026-10-21', name: 'Diwali' },
+        { date: '2026-11-15', name: 'Guru Nanak Jayanti' },
+        { date: '2026-12-25', name: 'Christmas Day' },
+      ],
+    },
+  };
+
   // Resources — flat structure. `hours` is HOURS PER WEEK. Total hours = hours × weeks(startDate, endDate).
+  // `holidaysOff` is an array of indices into the active calendar's `holidays` array.
   let resources = [
-    { role: 'Data Architect',    name: 'Grant Holden', location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 40, rate: 150, flcRate: 90 },
-    { role: 'Software Engineer', name: 'Saurav Kumar', location: 'Offshore', startDate: '2026-05-18', endDate: '2026-08-10', hours: 20, rate: 75,  flcRate: 35 },
-    { role: 'Project Manager',   name: 'Cara Yost',    location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 30, rate: 145, flcRate: 90 },
+    { role: 'Data Architect',    name: 'Grant Holden', location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 40, rate: 150, flcRate: 90, holidaysOff: [] },
+    { role: 'Software Engineer', name: 'Saurav Kumar', location: 'Offshore', startDate: '2026-05-18', endDate: '2026-08-10', hours: 20, rate: 75,  flcRate: 35, holidaysOff: [] },
+    { role: 'Project Manager',   name: 'Cara Yost',    location: 'Onshore',  startDate: '2026-05-18', endDate: '2026-08-10', hours: 30, rate: 145, flcRate: 90, holidaysOff: [] },
   ];
 
   // ============ STEPPER ============
@@ -1206,7 +1266,12 @@
     body.innerHTML = resources.map((r, i) => {
       const hrsPerWeek = +r.hours || 0;
       const weeks = weeksForResource(r);
-      const totalHours = hrsPerWeek * weeks;
+      // Subtract holiday hours: each checked holiday removes 8 × (allocation/100) hours
+      const calendar = HOLIDAY_CALENDARS[r.location] || HOLIDAY_CALENDARS.Onshore;
+      const holidaysOffCount = (r.holidaysOff || []).length;
+      const allocationPct = (typeof r.allocationPct === 'number') ? r.allocationPct : Math.round((hrsPerWeek / 40) * 100);
+      const holidayHours = holidaysOffCount * 8 * (allocationPct / 100);
+      const totalHours = Math.max(0, (hrsPerWeek * weeks) - holidayHours);
       const rate = +r.rate || 0;
       const flcRate = +r.flcRate || 0;
       const fees = totalHours * rate;
@@ -1235,6 +1300,12 @@
               <option ${r.location==='Onshore'?'selected':''}>Onshore</option>
               <option ${r.location==='Offshore'?'selected':''}>Offshore</option>
             </select>
+          </td>
+          <td class="ss-cell" style="padding:0;">
+            <button type="button" onclick="openHolidayPicker(${i})" style="width:100%;height:34px;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:12px;color:#0f172a;padding:0 8px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${calendar.label}</span>
+              <span style="font-weight:600;color:#2563eb;flex-shrink:0;">${holidaysOffCount}/${calendar.holidays.length}</span>
+            </button>
           </td>
           <td class="ss-cell">
             <input type="date" value="${r.startDate || ''}" onchange="updateResource(${i}, 'startDate', this.value)"/>
@@ -1274,6 +1345,44 @@
 
   // Allocation helpers — r.allocationPct is the source of truth for the spreadsheet's display.
   // r.hours is kept in sync as allocationPct × 40 / 100 (used by all financial calculations).
+  // ============ HOLIDAY PICKER ============
+  let activeHolidayResourceIdx = null;
+
+  function openHolidayPicker(i) {
+    activeHolidayResourceIdx = i;
+    const r = resources[i];
+    const calendar = HOLIDAY_CALENDARS[r.location] || HOLIDAY_CALENDARS.Onshore;
+    document.getElementById('holidayModalTitle').textContent = `${calendar.label} — ${r.name || 'Resource'}`;
+    document.getElementById('holidayModalSubtitle').textContent = `Check the holidays this resource is off. Each one reduces Total Hours by 8 × (Allocation%).`;
+    const list = document.getElementById('holidayModalList');
+    const off = r.holidaysOff || [];
+    list.innerHTML = calendar.holidays.map((h, hi) => {
+      const checked = off.includes(hi) ? 'checked' : '';
+      return `
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;font-size:13px;">
+          <input type="checkbox" ${checked} onchange="toggleHoliday(${hi})" style="width:16px;height:16px;cursor:pointer;"/>
+          <span style="flex:0 0 100px;color:#64748b;font-variant-numeric:tabular-nums;">${formatDate(h.date)}</span>
+          <span style="flex:1;color:#0f172a;font-weight:500;">${h.name}</span>
+        </label>`;
+    }).join('');
+    document.getElementById('holidayModal').style.display = 'flex';
+  }
+  function closeHolidayPicker() {
+    document.getElementById('holidayModal').style.display = 'none';
+    activeHolidayResourceIdx = null;
+    renderResources();
+  }
+  function toggleHoliday(hi) {
+    if (activeHolidayResourceIdx === null) return;
+    const r = resources[activeHolidayResourceIdx];
+    if (!r.holidaysOff) r.holidaysOff = [];
+    const idx = r.holidaysOff.indexOf(hi);
+    if (idx === -1) r.holidaysOff.push(hi);
+    else r.holidaysOff.splice(idx, 1);
+    // No re-render of the modal — checkbox state is browser-managed.
+    // The spreadsheet re-renders only on close so the user can check multiple boxes quickly.
+  }
+
   function adjustAllocation(i, delta) {
     const r = resources[i];
     if (typeof r.allocationPct !== 'number') {
@@ -1326,6 +1435,7 @@
       hours: ROLE_WEEKLY_HOURS[role] || 20,
       rate: 100, // flat default — user enters the negotiated price manually
       flcRate: defaultFlcFor({ role, location }),
+      holidaysOff: [],
     });
     renderResources();
   }
@@ -1343,6 +1453,8 @@
       r.location = val;
       // FLC depends on location. Bill Rate is left as-is (manual entry only).
       r.flcRate = defaultFlcFor(r);
+      // Holiday calendar swaps with location — clear any prior selections so indices don't misalign
+      r.holidaysOff = [];
     } else if (field === 'startDate') {
       r.startDate = val;
       if (r.endDate && r.endDate < val) {
