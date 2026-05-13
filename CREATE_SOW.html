@@ -611,7 +611,7 @@
     </div>
 
     <div class="panel" style="padding:0;overflow-x:auto;">
-      <table class="spreadsheet" style="table-layout:fixed;min-width:1580px;">
+      <table class="spreadsheet" style="table-layout:fixed;min-width:1660px;">
         <colgroup>
           <col style="width:36px;">
           <col style="width:160px;">
@@ -626,8 +626,8 @@
           <col style="width:100px;">
           <col style="width:80px;">
           <col style="width:100px;">
-          <col style="width:120px;">
-          <col style="width:100px;">
+          <col style="width:150px;">
+          <col style="width:140px;">
           <col style="width:50px;">
         </colgroup>
         <thead>
@@ -645,8 +645,8 @@
             <th style="text-align:center;">Total Fees</th>
             <th class="ss-internal-header" style="text-align:right;">FLC Rate</th>
             <th class="ss-internal-header" style="text-align:right;">Total Cost</th>
-            <th class="ss-internal-header" style="text-align:right;">Operating Margin $</th>
-            <th class="ss-internal-header" style="text-align:right;">Operating Margin %</th>
+            <th class="ss-internal-header" style="text-align:center;">Operating Margin $</th>
+            <th class="ss-internal-header" style="text-align:center;">Operating Margin %</th>
             <th></th>
           </tr>
         </thead>
@@ -1327,8 +1327,8 @@
           <td class="ss-computed" style="text-align:center;padding:0;">$${fees.toLocaleString()}</td>
           <td class="ss-computed ss-internal" style="color:#94a3b8;cursor:not-allowed;" title="FLC auto-set by role + location — not editable">$${flcRate}</td>
           <td class="ss-computed ss-internal">$${cost.toLocaleString()}</td>
-          <td class="ss-computed ss-internal ${marginCls}">$${margin.toLocaleString()}</td>
-          <td class="ss-computed ss-internal ${marginCls}">${marginPct.toFixed(1)}%</td>
+          <td class="ss-computed ss-internal ${marginCls}" style="text-align:center;padding:0;">$${margin.toLocaleString()}</td>
+          <td class="ss-computed ss-internal ${marginCls}" style="text-align:center;padding:0;">${marginPct.toFixed(1)}%</td>
           <td class="ss-action">
             <button class="delete-btn" onclick="removeResource(${i})" title="Remove row">
               <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
