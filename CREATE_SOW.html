@@ -2046,8 +2046,85 @@
               <td class="sow-label">DESCRIPTION OF SCOPE</td>
               <td>
                 <p><strong>1.0 Scope:</strong></p>
-                <p><span class="editable">The delivery is organized into sequential phases following a maturity model. Each phase builds upon the prior phase and has defined entry/exit gates.</span></p>
-                <p><strong>Technical Scope and Deliverables:</strong></p>
+                <p><span class="editable">The delivery is organized into three phases following a Crawl-Walk-Run maturity model. Each phase builds upon the prior phase and has defined entry/exit gates.</span></p>
+
+                <p style="margin-top:14px;"><strong>1.1 Phase 1 — CRAWL (Foundation &amp; Stabilization)</strong><br/><span class="editable">7 features | 26 stories</span></p>
+                <table class="sow-resource-table">
+                  <thead>
+                    <tr><th>ID</th><th>Feature Name</th><th>MoSCoW</th><th>Stories</th><th>Systems Touched</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>F-01</td><td><span class="editable">Security &amp; P0 Hardening</span></td><td><span class="editable">Must</span></td><td><span class="editable">4</span></td><td><span class="editable">Backend, Database, Object Storage</span></td></tr>
+                    <tr><td>F-02</td><td><span class="editable">Backend Bug Fixes</span></td><td><span class="editable">Must</span></td><td><span class="editable">8</span></td><td><span class="editable">Backend, Database</span></td></tr>
+                    <tr><td>F-03</td><td><span class="editable">CI/CD Pipeline</span></td><td><span class="editable">Must</span></td><td><span class="editable">3</span></td><td><span class="editable">GitHub Actions, AWS</span></td></tr>
+                    <tr><td>F-04</td><td><span class="editable">Cloud Infrastructure</span></td><td><span class="editable">Must</span></td><td><span class="editable">3</span></td><td><span class="editable">AWS (RDS, ElastiCache, S3)</span></td></tr>
+                    <tr><td>F-05</td><td><span class="editable">Payment UI Integration</span></td><td><span class="editable">Must</span></td><td><span class="editable">5</span></td><td><span class="editable">Frontend, Payment Gateway</span></td></tr>
+                    <tr><td>F-06</td><td><span class="editable">Payout Idempotency</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">Backend, Payment Gateway</span></td></tr>
+                    <tr><td>F-07</td><td><span class="editable">Error Handling Overhaul</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Frontend</span></td></tr>
+                  </tbody>
+                </table>
+
+                <p style="margin-top:14px;"><strong>1.2 Phase 2 — WALK (Feature Buildout &amp; Quality)</strong></p>
+                <p><span class="editable">Notification services (SMS, email reminders), automated late-fee scheduling, owner reporting, overdue dashboard, test coverage to 75%, API documentation, security hardening, audit trail, dependency cleanup, load testing, and internal beta review.</span></p>
+                <p><span class="editable">13 features | 24 stories</span></p>
+                <table class="sow-resource-table">
+                  <thead>
+                    <tr><th>ID</th><th>Feature Name</th><th>MoSCoW</th><th>Stories</th><th>Systems Touched</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>F-08</td><td><span class="editable">SMS Integration</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, SMS Gateway, Queue</span></td></tr>
+                    <tr><td>F-09</td><td><span class="editable">Auto Late Fee Scheduler</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Database, Queue</span></td></tr>
+                    <tr><td>F-10</td><td><span class="editable">Payment Reminder Engine</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Queue, SMTP, SMS</span></td></tr>
+                    <tr><td>F-11</td><td><span class="editable">CRM Decoupling</span></td><td><span class="editable">Should</span></td><td><span class="editable">1</span></td><td><span class="editable">Backend, CRM API, Database</span></td></tr>
+                    <tr><td>F-12</td><td><span class="editable">Owner Report Generator</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">Backend, Database, Excel/PDF</span></td></tr>
+                    <tr><td>F-13</td><td><span class="editable">Overdue Dashboard</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">Frontend, Backend, Database</span></td></tr>
+                    <tr><td>F-14</td><td><span class="editable">Test Coverage Foundation (75%)</span></td><td><span class="editable">Must</span></td><td><span class="editable">4</span></td><td><span class="editable">Backend, Frontend</span></td></tr>
+                    <tr><td>F-15</td><td><span class="editable">Documentation &amp; API Spec</span></td><td><span class="editable">Must</span></td><td><span class="editable">3</span></td><td><span class="editable">Swagger/OpenAPI, GitHub</span></td></tr>
+                    <tr><td>F-16</td><td><span class="editable">Security Hardening</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Frontend</span></td></tr>
+                    <tr><td>F-17</td><td><span class="editable">Audit Trail Phase I</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Database</span></td></tr>
+                    <tr><td>F-18</td><td><span class="editable">Dependency Cleanup + N+1 Fixes</span></td><td><span class="editable">Should</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Frontend, Database</span></td></tr>
+                    <tr><td>F-19</td><td><span class="editable">Load Test (p95 &lt;500ms)</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">Load testing tools, AWS</span></td></tr>
+                    <tr><td>F-20</td><td><span class="editable">Internal Beta Bug Bash</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">All systems</span></td></tr>
+                  </tbody>
+                </table>
+
+                <p style="margin-top:14px;"><strong>1.3 Phase 3 — RUN (Compliance, Hardening &amp; Launch)</strong></p>
+                <p><span class="editable">White-label theming, AI integration, predictive features, compliance (CCPA/GDPR/SOC 2), full test coverage, E2E testing, rate limiting, legal review, security audit, production hardening with pen test, and DNS cutover runbook.</span></p>
+                <p><span class="editable">13 features | 23 stories</span></p>
+                <table class="sow-resource-table">
+                  <thead>
+                    <tr><th>ID</th><th>Feature Name</th><th>MoSCoW</th><th>Stories</th><th>Systems Touched</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>F-21</td><td><span class="editable">Frontend White-label Theming</span></td><td><span class="editable">Should</span></td><td><span class="editable">4</span></td><td><span class="editable">Frontend, Tailwind CSS</span></td></tr>
+                    <tr><td>F-22</td><td><span class="editable">AI Integration (Chatbot)</span></td><td><span class="editable">Could</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, AI API</span></td></tr>
+                    <tr><td>F-23</td><td><span class="editable">Predictive Scoring (Rule-Based)</span></td><td><span class="editable">Should</span></td><td><span class="editable">1</span></td><td><span class="editable">Backend, Database, AI API</span></td></tr>
+                    <tr><td>F-25</td><td><span class="editable">SOC 2 Audit Logging</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Database</span></td></tr>
+                    <tr><td>F-26</td><td><span class="editable">100% Backend Test Coverage</span></td><td><span class="editable">Must</span></td><td><span class="editable">3</span></td><td><span class="editable">Backend, GitHub Actions</span></td></tr>
+                    <tr><td>F-27</td><td><span class="editable">E2E Testing</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Playwright, Frontend, Backend</span></td></tr>
+                    <tr><td>F-28</td><td><span class="editable">Rate Limiting</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">Backend, Cache</span></td></tr>
+                    <tr><td>F-29</td><td><span class="editable">Legal / Compliance Review</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">Backend, Database</span></td></tr>
+                    <tr><td>F-30</td><td><span class="editable">Email Template XSS Audit</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">Backend, SMTP</span></td></tr>
+                    <tr><td>F-31</td><td><span class="editable">Payment Gateway Separation</span></td><td><span class="editable">Must</span></td><td><span class="editable">2</span></td><td><span class="editable">Backend, Payment Gateway</span></td></tr>
+                    <tr><td>F-32</td><td><span class="editable">Production Hardening + Pentest</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">All systems</span></td></tr>
+                    <tr><td>F-33</td><td><span class="editable">DNS Cutover Runbook</span></td><td><span class="editable">Must</span></td><td><span class="editable">1</span></td><td><span class="editable">AWS Route 53, CDN</span></td></tr>
+                  </tbody>
+                </table>
+
+                <p style="margin-top:14px;"><strong>Phase Summary</strong></p>
+                <table class="sow-resource-table">
+                  <thead>
+                    <tr><th>Phase</th><th>Features</th><th>Stories</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>CRAWL — Phase 1</td><td><span class="editable">7</span></td><td><span class="editable">26</span></td></tr>
+                    <tr><td>WALK — Phase 2</td><td><span class="editable">13</span></td><td><span class="editable">24</span></td></tr>
+                    <tr><td>RUN — Phase 3</td><td><span class="editable">13</span></td><td><span class="editable">23</span></td></tr>
+                    <tr style="background:#f1f5f9;font-weight:700;"><td>TOTAL</td><td><span class="editable">33</span></td><td><span class="editable">73</span></td></tr>
+                  </tbody>
+                </table>
+
+                <p style="margin-top:14px;"><strong>Technical Scope and Deliverables:</strong></p>
                 <ul>
                   ${details.deliverables.map(d => `<li><span class="editable">${d}</span></li>`).join('')}
                 </ul>
