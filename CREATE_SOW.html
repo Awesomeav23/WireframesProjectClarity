@@ -1974,6 +1974,49 @@
     const details = sowTypeDetails[sowKey];
     const custSig = customerSignatories[custKey] || { name: 'Authorized Signatory', title: 'Authorized Signatory' };
 
+    // Pull unique roles from Step 2 resources for the "Resources to be Provided" section
+    const uniqueRoles = [...new Set(resources.map(r => r.role))];
+
+    // Reconstruct the invoicing schedule from Step 3 inputs (frequency + dates + contract value)
+    const invFreq = (document.getElementById('frequency') || {}).value || '';
+    const invFirst = (document.getElementById('firstInvoice') || {}).value || startRaw;
+    let invoicingRows = '';
+    let invoicingTotalText = '';
+    if (invFreq === 'milestone' || invFreq === 'completion') {
+      if ((milestones || []).length) {
+        invoicingRows = milestones.map((m, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${m.name}</td>
+            <td>${m.date ? formatDate(m.date) : '—'}</td>
+            <td style="text-align:right;">$${(+m.amount || 0).toLocaleString()}</td>
+          </tr>`).join('');
+        const milestoneTotal = milestones.reduce((s, m) => s + (+m.amount || 0), 0);
+        invoicingTotalText = `$${milestoneTotal.toLocaleString()}`;
+      } else {
+        invoicingRows = `<tr><td colspan="4" style="color:#94a3b8;font-style:italic;">No milestones defined yet — add them on Step 3.</td></tr>`;
+        invoicingTotalText = `$${totRevenue.toLocaleString()}`;
+      }
+    } else if (invFreq && invFirst && endRaw) {
+      // Build the periodic schedule the same way Step 3 does
+      const periods = generatePeriods(invFirst, endRaw, invFreq);
+      const perPeriod = periods.length > 0 ? Math.round(totRevenue / periods.length) : 0;
+      invoicingRows = periods.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${formatDate(p.from)} → ${formatDate(p.to)}</td>
+          <td>${formatDate(p.send)}</td>
+          <td style="text-align:right;">$${perPeriod.toLocaleString()}</td>
+        </tr>`).join('');
+      invoicingTotalText = `$${(perPeriod * periods.length).toLocaleString()}`;
+    } else {
+      invoicingRows = `<tr><td colspan="4" style="color:#94a3b8;font-style:italic;">Invoicing cadence not set — define on Step 3.</td></tr>`;
+      invoicingTotalText = `$${totRevenue.toLocaleString()}`;
+    }
+    const invoicingHeaderRow = (invFreq === 'milestone' || invFreq === 'completion')
+      ? `<tr><th>#</th><th>Milestone</th><th>Due Date</th><th style="text-align:right;">Amount (USD)</th></tr>`
+      : `<tr><th>Invoice #</th><th>Period</th><th>Send Date</th><th style="text-align:right;">Amount (USD)</th></tr>`;
+
     document.getElementById('reviewPanel').innerHTML = `
       <div class="sow-doc">
         <div class="sow-header"><div class="sow-logo">DynPro</div></div>
@@ -1982,10 +2025,7 @@
 
         <p class="sow-preamble">
           THIS STATEMENT OF WORK ("SOW") is entered into as of ${ph(effective, 'Effective Date')} (the "Effective Date") by and between <strong>DynPro, Inc.</strong>, with its principal place of business at 8045 Arco Corporate Drive, Suite #370, Raleigh, NC 27617 ("Provider") and <strong>${ph(cust, 'Customer Name')}</strong>, ("${ph(custAbbrev, 'Abbrev')}") with its principal place of business at ${ph(custAddress, 'Customer Address')}.
-        </p>
-
-        <p class="sow-preamble">
-          This SOW is subject to and governed by the Master Service Agreement ("MSA") entered into by such parties having an Effective Date of <span class="editable">${msaDate}</span>.
+          This SOW is subject to and governed by the Master Services Agreement entered into by such parties having an Effective Date of <span class="editable">${msaDate}</span> ("MSA"). All capitalized terms used in this SOW and not defined herein shall have the same meaning as provided in the MSA.
         </p>
 
         <table class="sow-table">
@@ -1996,40 +2036,108 @@
               <td>${ph(desc, 'Project description')}</td>
             </tr>
             <tr>
-              <td class="sow-label">SCOPE</td>
+              <td class="sow-label">PROJECT OVERVIEW</td>
               <td>
+                <p><span class="editable">${cust || 'Client'} is the customer for this engagement. ${desc ? desc : 'A high-level overview of the customer\'s product and the problem being solved goes here.'}</span></p>
+                <p><span class="editable">DynPro will perform a comprehensive scope of work organized into clearly defined phases with entry/exit gates. The engagement culminates in a production-ready, tested, and documented deliverable.</span></p>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">DESCRIPTION OF SCOPE</td>
+              <td>
+                <p><strong>1.0 Scope:</strong></p>
+                <p><span class="editable">The delivery is organized into sequential phases following a maturity model. Each phase builds upon the prior phase and has defined entry/exit gates.</span></p>
                 <p><strong>Technical Scope and Deliverables:</strong></p>
                 <ul>
                   ${details.deliverables.map(d => `<li><span class="editable">${d}</span></li>`).join('')}
                 </ul>
-                <p><strong>Assumptions:</strong> Following assumptions apply to the project scope:</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">DELIVERABLES</td>
+              <td>
+                <ul>
+                  <li><span class="editable">Fully functional ${name || 'platform'} delivered against the agreed scope</span></li>
+                  <li><span class="editable">All artifacts (code, documentation, test reports) checked into the project repository</span></li>
+                  <li><span class="editable">Knowledge transfer sessions and runbooks for ongoing operations</span></li>
+                  <li><span class="editable">Acceptance sign-off package for each phase or milestone</span></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">OUT OF SCOPE</td>
+              <td>
+                <p>The following items are explicitly excluded from this engagement:</p>
+                <ul>
+                  <li><span class="editable">Any work not specifically described in the Description of Scope above</span></li>
+                  <li><span class="editable">Long-term managed services beyond the SOW period</span></li>
+                  <li><span class="editable">Third-party SaaS subscription costs (cloud hosting, integrations, etc.)</span></li>
+                  <li><span class="editable">Legal counsel, regulatory certification, or audit attestation</span></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">ADDITIONAL EXCLUSIONS</td>
+              <td>
+                <ul>
+                  <li><span class="editable">Post-deployment hypercare beyond the SOW period</span></li>
+                  <li><span class="editable">Hardware procurement or shipping</span></li>
+                  <li><span class="editable">User training delivery beyond standard handover documentation</span></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">ASSUMPTIONS</td>
+              <td>
+                <p>Following assumptions apply to the project scope:</p>
                 <ul>
                   ${details.assumptions.map(a => `<li><span class="editable">${a}</span></li>`).join('')}
                 </ul>
               </td>
             </tr>
             <tr>
-              <td class="sow-label">NOT TO EXCEED CONTRACT VALUE</td>
+              <td class="sow-label">GOVERNANCE &amp; REPORTING</td>
               <td>
-                <p>DynPro will provide following skilled resources, details below:</p>
+                <ul>
+                  <li><strong>Cadence:</strong> <span class="editable">Weekly or bi-weekly sync meetings for progress tracking and issue escalation.</span></li>
+                  <li><strong>Documentation:</strong> <span class="editable">All requirements, validation reports, and testing results to be maintained in the project repository.</span></li>
+                  <li><strong>Escalation Path:</strong> <span class="editable">Issues unresolved within 8 business hours are escalated to the Project Manager and executive sponsors.</span></li>
+                  <li><strong>Sign-off:</strong> <span class="editable">Formal UAT and phase-gate sign-offs from ${custAbbrev || 'Customer'} core stakeholders at the end of each phase.</span></li>
+                  <li><strong>Phase Reports:</strong> <span class="editable">Summary of completed features, issues resolved, blockers, and next-phase readiness assessment.</span></li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">TOTAL CONTRACT VALUE (NOT TO EXCEED)</td>
+              <td>
+                <p>DynPro will provide the following skilled resources, details below:</p>
                 <table class="sow-resource-table">
                   <thead>
                     <tr><th>Role</th><th>Location</th><th>Estimated Hours (hr.)</th></tr>
                   </thead>
                   <tbody>
                     ${resources.map(r => `<tr>
-                      <td>${r.role}${r.name ? ` — <em>${r.name}</em>` : ''}</td>
+                      <td>${r.role}${r.name && r.name !== 'TBD' ? ` — <em>${r.name}</em>` : ''}</td>
                       <td>${r.location}</td>
                       <td>${getResourceHours(r).toLocaleString()}</td>
                     </tr>`).join('')}
                   </tbody>
                 </table>
-                <p><strong>Total Contract value: <span class="editable">USD $${totRevenue.toLocaleString()}.00</span></strong></p>
-                <p><strong>Note:</strong></p>
-                <ol>
-                  <li>DynPro shall issue invoices based on the actual hours worked. Invoices will be submitted at the beginning of each calendar month for services rendered during the preceding month.</li>
-                  <li>Travel and living expenses are not anticipated at this stage. If such expenses become necessary, prior written approval from ${custAbbrev || 'Customer'} will be required, and any approved expenses will be invoiced on a pass-through basis.</li>
-                </ol>
+                <p><strong>Total SOW value (Not to exceed): <span class="editable">USD $${totRevenue.toLocaleString()}.00</span></strong></p>
+                <p style="margin-top:10px;font-size:11px;color:#475569;font-style:italic;">Note: The fixed fee for this Statement of Work (SOW) is all-inclusive. Travel and Living (T&amp;L) expenses are not anticipated, as all services will be delivered remotely. In the event that travel becomes necessary, such expenses will require prior written approval from ${custAbbrev || 'Customer'}. Upon approval, DynPro will include the applicable T&amp;L expenses in the monthly invoice, and ${custAbbrev || 'Customer'} will reimburse these costs on a pass-through basis.</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="sow-label">INVOICING SCHEDULE</td>
+              <td>
+                <p>DynPro will submit invoices per the cadence defined in the Invoicing Plan. The invoicing schedule is outlined below.</p>
+                <table class="sow-resource-table">
+                  <thead>${invoicingHeaderRow}</thead>
+                  <tbody>
+                    ${invoicingRows}
+                    <tr style="background:#f1f5f9;font-weight:700;"><td colspan="3" style="text-align:right;">TOTAL</td><td style="text-align:right;">${invoicingTotalText}</td></tr>
+                  </tbody>
+                </table>
               </td>
             </tr>
             <tr>
@@ -2047,20 +2155,21 @@
               <td>Remote</td>
             </tr>
             <tr>
-              <td class="sow-label">REPORTING</td>
-              <td>
-                A Monthly Status Report is to be delivered in MS Office Word/Excel. The report is to include Status, Issues, and Risk Communication to ensure ${custAbbrev || 'Customer'} is fully engaged with the latest developments and potential problems.
-                <br><br>
-                Report to be delivered via email to <span class="editable">${customerEmail}</span>.
-              </td>
-            </tr>
-            <tr>
               <td class="sow-label">ACCEPTANCE CRITERIA</td>
-              <td>Time frame for acceptance or rejection of deliverables is five (5) business days from receipt, after which the deliverable is assumed to be accepted.</td>
+              <td>Time frame for acceptance or rejection of deliverables is five (5) business days from receipt, after which the deliverable is assumed to be accepted. Each phase will conclude with a formal sign-off gate before the next phase begins.</td>
             </tr>
             <tr>
               <td class="sow-label">AREA OF EXPERTISE</td>
               <td><span class="editable">${details.areaOfExpertise}</span></td>
+            </tr>
+            <tr>
+              <td class="sow-label">RESOURCES TO BE PROVIDED</td>
+              <td>
+                <p>The DynPro team will consist of the following skillsets:</p>
+                <ul>
+                  ${uniqueRoles.map(role => `<li>${role}</li>`).join('')}
+                </ul>
+              </td>
             </tr>
             <tr>
               <td class="sow-label">PROVIDER POINT OF CONTACT</td>
@@ -2070,16 +2179,9 @@
               <td class="sow-label">PAYMENT</td>
               <td>
                 <p>Notwithstanding anything else in the Agreement and this SOW to the contrary and unless otherwise agreed upon in writing by ${custAbbrev || 'Customer'}, the maximum funding liability under this SOW shall not exceed the "Not to Exceed" quote listed above.</p>
-                <p>Any delays in or to target completion date or changes to resource allocation per section "Resource provided by Provider" due to factors outside of DynPro's control listed in the Change Request clause may have an impact on the total contract value and associated Milestone payment listed above. In the event of such impact, Provider shall obtain ${custAbbrev || 'Customer'}'s prior approval before proceeding with the Services.</p>
+                <p style="font-style:italic;">*The total amount listed above is based on resource allocation as shown in the Total Contract Value section and the target completion date in the SOW Period section.</p>
+                <p style="font-style:italic;">*Any delays in or to target completion date or changes to resource allocation due to factors outside of DynPro's control listed in the Change Request clause may have an impact on the total contract value. In the event of such impact, Provider shall obtain ${custAbbrev || 'Customer'}'s prior approval before proceeding with the Services.</p>
               </td>
-            </tr>
-            <tr>
-              <td class="sow-label">EXPENSES</td>
-              <td>The rate paid for consulting services is all inclusive. Travel expenses will not be reimbursed until prior approval is attained.</td>
-            </tr>
-            <tr>
-              <td class="sow-label">PLACE OF PERFORMANCE</td>
-              <td>Remote</td>
             </tr>
             <tr>
               <td class="sow-label">CHANGE REQUEST PROCESS</td>
